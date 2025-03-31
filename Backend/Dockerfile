@@ -22,7 +22,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install Python dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && \
+    for i in 1 2 3 4 5; do \
+        pip install --no-cache-dir -r requirements.txt && break || \
+        echo "Retry attempt $i..." && \
+        sleep 5; \
+    done
 
 # Download spaCy model
 RUN python -m spacy download en_core_web_sm
