@@ -1,11 +1,13 @@
 # FastAPI 
 fastapi==0.95.0
 uvicorn==0.21.0
-python-multipart==0.0.5
+#python-multipart==0.0.5
+python-multipart==0.0.9  # Security fix for DoS vulnerability
 jinja2==3.1.2
 
 # Django and REST framework
-Django==4.2.5
+# Django==4.2.5
+Django==4.2.10  # Security fix for SQL injection vulnerability
 djangorestframework==3.14.0
 djangorestframework-simplejwt==5.2.2
 django-cors-headers==4.0.0
@@ -15,7 +17,8 @@ google-cloud-storage
 
 # Authentication and Security
 PyJWT==2.6.0
-cryptography==40.0.0
+#cryptography==40.0.0
+cryptography==42.0.2  # Security fix for NULL pointer dereference
 twilio==7.0.0  
 six==1.16.0
 
@@ -35,9 +38,11 @@ numpy==1.21.2
 pandas==1.3.3
 
 # OCR and image processing
-Pillow==8.3.2  
+#Pillow==8.3.2
+Pillow==10.2.0  # Security fix for arbitrary code execution vulnerability  
 pytesseract==0.3.8
-opencv-python-headless==4.5.3.56
+#opencv-python-headless==4.5.3.56
+opencv-python-headless==4.8.1.78  # Security fix for libwebp vulnerability
 pdf2image==1.16.0
 PyMuPDF==1.18.14
 
@@ -50,8 +55,10 @@ usaddress==0.5.10
 pycountry==20.7.3
 
 # Machine learning and deep learning
-torch==1.9.1
-transformers==4.11.3
+#torch==1.9.1
+torch==2.2.0  # Security fix for deserialization vulnerability
+#transformers==4.11.3
+transformers==4.38.0  # Security fix for untrusted data deserialization
 
 # Google Cloud Vision and Document AI
 google-cloud-documentai==2.15.0
@@ -66,7 +73,8 @@ openpyxl==3.0.9
 XlsxWriter==3.0.2
 
 # Asynchronous programming
-aiohttp==3.7.4.post0
+#aiohttp==3.7.4.post0
+aiohttp==3.9.1  # Security fix for DoS vulnerability
 async-timeout==3.0.1
 aiofiles==0.8.0
 aioredis==2.0.1
@@ -103,4 +111,5 @@ flake8==3.9.2
 isort==5.9.3
 
 # Production deployment
-gunicorn==20.1.0
+#gunicorn==20.1.0
+gunicorn==21.2.0  # Security fix for request smuggling vulnerability

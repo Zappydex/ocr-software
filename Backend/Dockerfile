@@ -1,4 +1,3 @@
-
 # Use an official Python runtime as a parent image
 FROM python:3.9-slim
 
@@ -10,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Set the working directory in the container
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies including Node.js and npm
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
@@ -18,10 +17,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libtesseract-dev \
     poppler-utils \
     libmagic1 \
+    nodejs \
+    npm \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-COPY requirements.txt .
+COPY Backend/requirements.txt .
 RUN pip install --upgrade pip && \
     for i in 1 2 3 4 5; do \
         pip install --no-cache-dir -r requirements.txt && break || \
@@ -32,6 +33,13 @@ RUN pip install --upgrade pip && \
 # Download spaCy model
 RUN python -m spacy download en_core_web_sm
 
+# Copy and build frontend (do this before switching to non-root user)
+COPY frontend/ /app/frontend/
+WORKDIR /app/frontend
+RUN npm install
+RUN npm run build
+WORKDIR /app
+
 # Create a non-root user
 RUN adduser --disabled-password --gecos '' appuser
 
@@ -39,11 +47,11 @@ RUN adduser --disabled-password --gecos '' appuser
 RUN mkdir -p /var/log/app /var/run /app/logs && \
     chown -R appuser:appuser /app /var/log/app /var/run
 
-# Copy the current directory contents into the container
-COPY --chown=appuser:appuser . .
+# Copy the backend directory contents into the container
+COPY --chown=appuser:appuser Backend/ /app/
 
 # Copy the template folder into the container
-COPY --chown=appuser:appuser template /app/template
+COPY --chown=appuser:appuser Backend/template /app/template
 
 # Handle Google credentials from environment variable instead of copying file
 RUN if [ -n "$GOOGLE_APPLICATION_CREDENTIALS_JSON" ]; then \

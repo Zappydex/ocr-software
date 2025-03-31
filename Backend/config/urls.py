@@ -1,4 +1,3 @@
-
 """
 URL configuration for OCREngine project.
 
@@ -21,27 +20,37 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from accounts import views
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from rest_framework.authtoken import views as token_views
 from django.views.generic import TemplateView
 
 def health_check(request):
     return HttpResponse("OK")
 
+def django_health_check(request):
+    """
+    Enhanced health check endpoint that returns a JSON response.
+    This helps monitoring systems verify the Django application is running.
+    """
+    return JsonResponse({
+        "status": "ok",
+        "message": "Django application is running"
+    })
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/accounts/', include('accounts.urls')),
     path('api/', include('api.urls')),
     path('activate/<str:uidb64>/<str:token>/<int:user_id>/', views.activate_account, name='activate_account'),
-    path('api/notifications/', include('Notifications.urls')),
     path('health/', health_check, name='health_check'),
+    path('django-health/', django_health_check, name='django_health_check'),
     
     # Include other app URLs that should be handled before the catch-all
     path('', include('search_filter.urls')),
     path('', include('project.urls')),
     
     # Serve React app for all other routes
-    re_path(r'^(?!api/|admin/|activate/|health/).*$', TemplateView.as_view(template_name='index.html')),
+    re_path(r'^(?!api/|admin/|activate/|health/|django-health/).*$', TemplateView.as_view(template_name='index.html')),
 ]
 
 # Static and media files
