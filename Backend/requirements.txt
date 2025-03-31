@@ -20,7 +20,7 @@ twilio==7.0.0
 six==1.16.0
 
 # Celery 
-celery==5.1.2
+celery
 redis==3.5.3
 flower==1.0.0
 
