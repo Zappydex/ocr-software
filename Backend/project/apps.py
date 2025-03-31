@@ -11,5 +11,4 @@ class ProjectConfig(AppConfig):
         Perform initialization tasks when the app is ready.
         This is a good place to register signal handlers.
         """
-        # Import signals to ensure they are registered
-        import project.signals
+        

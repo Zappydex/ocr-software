@@ -19,8 +19,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libmagic1 \
     nodejs \
     npm \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
-    
+
 COPY Backend/requirements.txt .
 RUN pip install --upgrade pip && \
     for i in 1 2 3 4 5; do \
