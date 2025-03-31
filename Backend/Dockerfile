@@ -56,8 +56,7 @@ EXPOSE 10000 8001
 ENV GUNICORN_CMD_ARGS="--workers=2 --worker-class=uvicorn.workers.UvicornWorker --timeout=300 --max-requests=1000 --max-requests-jitter=50"
 
 # Run both FastAPI and Django applications in production mode
-CMD uvicorn Backend.app.main:app --host 0.0.0.0 --port ${PORT:-10000} --log-level info & \
-    cd Backend && \
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-10000} --log-level info & \
     python manage.py makemigrations && \
     python manage.py migrate && \
     python manage.py collectstatic --noinput && \
