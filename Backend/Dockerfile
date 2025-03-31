@@ -20,8 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nodejs \
     npm \
     && rm -rf /var/lib/apt/lists/*
-
-# Install Python dependencies
+    
 COPY Backend/requirements.txt .
 RUN pip install --upgrade pip && \
     for i in 1 2 3 4 5; do \
@@ -30,8 +29,8 @@ RUN pip install --upgrade pip && \
         sleep 5; \
     done
 
-# Download spaCy model
-RUN python -m spacy download en_core_web_sm
+# Make sure spaCy is installed before downloading the model
+RUN pip install spacy && python -m spacy download en_core_web_sm
 
 # Copy and build frontend (do this before switching to non-root user)
 COPY frontend/ /app/frontend/
