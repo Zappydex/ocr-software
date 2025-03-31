@@ -1,0 +1,90 @@
+.anomaly-item {
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.anomaly-item:hover {
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.anomaly-item .card-header {
+  background-color: #fff;
+  border-bottom: none;
+  padding: 0.75rem 1rem;
+}
+
+.anomaly-badge {
+  font-size: 0.75rem;
+  padding: 0.35em 0.65em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.anomaly-title {
+  font-weight: 500;
+  color: #343a40;
+  font-size: 0.95rem;
+}
+
+.anomaly-actions {
+  display: flex;
+  align-items: center;
+}
+
+.details-toggle {
+  color: #6c757d;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.details-toggle:hover {
+  color: #495057;
+  text-decoration: underline;
+}
+
+.anomaly-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+}
+
+.detail-label {
+  min-width: 100px;
+  font-weight: 600;
+  color: #6c757d;
+}
+
+.detail-value {
+  color: #212529;
+}
+
+@media (max-width: 576px) {
+  .anomaly-item .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .anomaly-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .detail-label {
+    min-width: auto;
+  }
+}

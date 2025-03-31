@@ -1,0 +1,193 @@
+/* src/features/user/styles/Settings.css */
+.settings-container {
+  padding: 1.5rem 0;
+}
+
+.settings-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--text-color, #212529);
+  margin-bottom: 1.5rem;
+}
+
+.settings-tab {
+  margin-bottom: 1.5rem;
+}
+
+.settings-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: none;
+  margin-bottom: 1.5rem;
+  background-color: var(--card-bg, #ffffff);
+}
+
+.settings-card .card-header {
+  background-color: var(--card-header-bg, #f8f9fa);
+  border-bottom: 1px solid var(--border-color, rgba(0, 0, 0, 0.125));
+  padding: 1rem;
+}
+
+.settings-card .card-header h5 {
+  color: var(--heading-color, #495057);
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.settings-card .card-body {
+  padding: 1.25rem;
+  color: var(--text-color, #212529);
+}
+
+.settings-card .form-label {
+  font-weight: 500;
+  color: var(--label-color, #495057);
+  font-size: 0.9rem;
+}
+
+.settings-card .form-control,
+.settings-card .form-select {
+  background-color: var(--input-bg, #ffffff);
+  border: 1px solid var(--input-border, #ced4da);
+  color: var(--input-text, #212529);
+}
+
+.settings-card .form-control:focus,
+.settings-card .form-select:focus {
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.settings-card .form-text {
+  color: var(--text-muted, #6c757d);
+  font-size: 0.85rem;
+}
+
+.settings-card h6 {
+  font-weight: 600;
+  color: var(--heading-color, #495057);
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+/* Project status list styling */
+.project-status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.project-status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border-radius: 6px;
+  background-color: var(--item-bg, #f8f9fa);
+  transition: background-color 0.2s ease;
+}
+
+.project-status-item:hover {
+  background-color: var(--item-hover-bg, #e9ecef);
+}
+
+.project-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.project-name {
+  font-weight: 500;
+  color: var(--text-color, #212529);
+}
+
+.project-id {
+  font-size: 0.85rem;
+  color: var(--text-muted, #6c757d);
+}
+
+.project-status-toggle {
+  margin: 0;
+}
+
+/* Tab styling */
+.nav-tabs {
+  border-bottom: 1px solid var(--border-color, #dee2e6);
+}
+
+.nav-tabs .nav-link {
+  color: var(--tab-color, #495057);
+  border: none;
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+}
+
+.nav-tabs .nav-link:hover {
+  color: var(--tab-hover-color, #0d6efd);
+  border-color: transparent;
+}
+
+.nav-tabs .nav-link.active {
+  color: var(--tab-active-color, #0d6efd);
+  background-color: transparent;
+  border-bottom: 2px solid var(--tab-active-color, #0d6efd);
+}
+
+/* Dark theme variables */
+[data-theme="dark"] {
+  --text-color: #e9ecef;
+  --heading-color: #f8f9fa;
+  --card-bg: #2d3238;
+  --card-header-bg: #212529;
+  --border-color: #495057;
+  --label-color: #adb5bd;
+  --input-bg: #343a40;
+  --input-border: #495057;
+  --input-text: #e9ecef;
+  --text-muted: #adb5bd;
+  --item-bg: #343a40;
+  --item-hover-bg: #495057;
+  --tab-color: #adb5bd;
+  --tab-hover-color: #ffffff;
+  --tab-active-color: #0d6efd;
+}
+
+/* Light theme variables */
+[data-theme="light"] {
+  --text-color: #212529;
+  --heading-color: #495057;
+  --card-bg: #ffffff;
+  --card-header-bg: #f8f9fa;
+  --border-color: rgba(0, 0, 0, 0.125);
+  --label-color: #495057;
+  --input-bg: #ffffff;
+  --input-border: #ced4da;
+  --input-text: #212529;
+  --text-muted: #6c757d;
+  --item-bg: #f8f9fa;
+  --item-hover-bg: #e9ecef;
+  --tab-color: #495057;
+  --tab-hover-color: #0d6efd;
+  --tab-active-color: #0d6efd;
+}
+
+@media (max-width: 768px) {
+  .settings-container {
+    padding: 1rem 0;
+  }
+  
+  .settings-card .card-body {
+    padding: 1rem;
+  }
+  
+  .project-status-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .project-status-toggle {
+    align-self: flex-start;
+  }
+}
