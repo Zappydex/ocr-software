@@ -39,7 +39,12 @@ RUN pip install spacy && python -m spacy download en_core_web_sm
 # Copy and build frontend (do this before switching to non-root user)
 COPY frontend/ /app/frontend/
 WORKDIR /app/frontend
-RUN npm install
+# Configure npm with increased timeout and retries
+RUN npm config set registry https://registry.npmjs.org/ && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm config set fetch-retries 5 && \
+    npm install
 RUN npm run build
 WORKDIR /app
 
