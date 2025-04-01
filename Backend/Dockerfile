@@ -57,7 +57,7 @@ COPY --chown=appuser:appuser Backend/ /app/
 COPY --chown=appuser:appuser Backend/template /app/template
 
 # Copy Nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf.template
+COPY Backend/nginx.conf /etc/nginx/nginx.conf.template
 
 # Handle Google credentials from environment variable instead of copying file
 RUN if [ -n "$GOOGLE_APPLICATION_CREDENTIALS_JSON" ]; then \
