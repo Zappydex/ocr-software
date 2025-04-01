@@ -18,7 +18,7 @@ from app.utils.file_handler import FileHandler
 from app.utils.validator import invoice_validator, flag_anomalies
 from app.utils.exporter import export_invoices
 from app.utils.data_extractor import DataExtractor
-from app.models import ProcessingStatus, ProcessingRequest, Invoice
+from app.models import ProcessingStatus, Invoice
 
 # Access the global dictionaries from the OCR Engine
 from app.main import processing_tasks, direct_results
