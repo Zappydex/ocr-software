@@ -1,3 +1,5 @@
+##----+------##
+
 # Use an official Python runtime as a parent image
 FROM python:3.9-slim
 
@@ -35,20 +37,21 @@ RUN pip install --upgrade pip && \
 # Make sure spaCy is installed before downloading the model
 RUN pip install spacy && python -m spacy download en_core_web_sm
 
+# Comment out Node.js installation and frontend build for now
 # Install Node.js 16
-RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
-    apt-get install -y nodejs
+# RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
+#     apt-get install -y nodejs
 
-COPY frontend/ /app/frontend/
-WORKDIR /app/frontend
+# COPY frontend/ /app/frontend/
+# WORKDIR /app/frontend
 # Clear cache and configure npm with increased timeout and retries
-RUN npm cache clean --force && \
-    npm config set registry https://registry.npmjs.org/ && \
-    npm config set fetch-retry-mintimeout 20000 && \
-    npm config set fetch-retry-maxtimeout 120000 && \
-    npm config set fetch-retries 5 && \
-    npm install
-RUN npm run build
+# RUN npm cache clean --force && \
+#     npm config set registry https://registry.npmjs.org/ && \
+#     npm config set fetch-retry-mintimeout 20000 && \
+#     npm config set fetch-retry-maxtimeout 120000 && \
+#     npm config set fetch-retries 5 && \
+#     npm install
+# RUN npm run build
 WORKDIR /app
 
 # Create a non-root user
