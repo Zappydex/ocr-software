@@ -30,7 +30,7 @@ app = FastAPI(
     title=settings.PROJECT_NAME, 
     version="1.0.0",
     docs_url=None,  # Disable Swagger UI
-    redoc_url=None  # Disable ReDoc UI
+    redoc_url=None,  # Disable ReDoc UI
     root_path="/api"
 )
 

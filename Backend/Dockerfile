@@ -1,5 +1,3 @@
-##----+------##
-
 # Use an official Python runtime as a parent image
 FROM python:3.9-slim
 
@@ -11,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Set the working directory in the container
 WORKDIR /app
 
-# Install system dependencies (removed nodejs and npm since we'll install Node.js 16 later)
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
@@ -57,9 +55,13 @@ WORKDIR /app
 # Create a non-root user
 RUN adduser --disabled-password --gecos '' appuser
 
-# Create necessary directories and set permissions
+# Create all necessary directories and set permissions
 RUN mkdir -p /var/log/app /var/run /app/logs /var/log/nginx && \
-    chown -R appuser:appuser /app /var/log/app /var/run
+    mkdir -p /run && \
+    mkdir -p /app/frontend/build/static && \
+    mkdir -p /app/static && \
+    mkdir -p /var/lib/nginx && \
+    chown -R appuser:appuser /app /var/log/app /var/run /run /app/frontend /app/static /var/lib/nginx /var/log/nginx /etc/nginx
 
 # Copy the backend directory contents into the container
 COPY --chown=appuser:appuser Backend/ /app/
@@ -98,10 +100,6 @@ gunicorn --bind 127.0.0.1:8001 config.wsgi:application --access-logfile /var/log
 \n\
 # Start Nginx\n\
 nginx -g "daemon off;"\n' > /app/start.sh && chmod +x /app/start.sh
-
-# Ensure nginx can run
-RUN mkdir -p /var/lib/nginx /var/log/nginx && \
-    chown -R appuser:appuser /var/lib/nginx /var/log/nginx /etc/nginx
 
 # Switch to non-root user
 USER appuser
