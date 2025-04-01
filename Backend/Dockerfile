@@ -79,33 +79,29 @@ RUN chmod 600 /app/google_credentials.json
 # Make ports available to the world outside this container
 EXPOSE ${PORT:-10000}
 
-# Set memory limit for Gunicorn workers
-ENV GUNICORN_CMD_ARGS="--workers=2 --worker-class=uvicorn.workers.UvicornWorker --timeout=300 --max-requests=1000 --max-requests-jitter=50"
-
 # Create a startup script
 RUN echo '#!/bin/bash\n\
 # Debug PORT variable\n\
 echo "PORT environment variable is: ${PORT}"\n\
 \n\
-# Set default PORT if not provided\n\
-export PORT="${PORT:-8080}"\n\
-echo "Using PORT: ${PORT}"\n\
+# Start FastAPI on internal port\n\
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --log-level info &\n\
 \n\
-# Replace PORT in nginx config\n\
-envsubst "\$PORT" < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf\n\
-\n\
-# Debug the generated nginx.conf\n\
-echo "Generated nginx.conf port:"\n\
-cat /etc/nginx/nginx.conf | grep listen\n\
-\n\
-# Start FastAPI\n\
-uvicorn app.main:app --host 127.0.0.1 --port 10000 --log-level info &\n\
-\n\
-# Start Django\n\
+# Start Django on internal port\n\
 python manage.py makemigrations\n\
 python manage.py migrate\n\
 python manage.py collectstatic --noinput\n\
 gunicorn --bind 127.0.0.1:8001 config.wsgi:application --access-logfile /var/log/app/django.access.log --error-logfile /var/log/app/django.error.log &\n\
+\n\
+# Replace PORT in nginx config\n\
+envsubst "\$PORT" < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf\n\
+\n\
+# Update nginx.conf to point to new FastAPI port\n\
+sed -i "s/proxy_pass http:\\/\\/127.0.0.1:10000/proxy_pass http:\\/\\/127.0.0.1:8000/g" /etc/nginx/nginx.conf\n\
+\n\
+# Debug the generated nginx.conf\n\
+echo "Generated nginx.conf:"\n\
+cat /etc/nginx/nginx.conf | grep -A 5 "location /api/"\n\
 \n\
 # Start Nginx\n\
 nginx -g "daemon off;"\n' > /app/start.sh && chmod +x /app/start.sh
