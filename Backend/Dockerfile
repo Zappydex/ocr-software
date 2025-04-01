@@ -37,8 +37,7 @@ RUN pip install spacy && python -m spacy download en_core_web_sm
 
 # Install Node.js 16
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
-    apt-get install -y nodejs && \
-    npm install -g npm@latest
+    apt-get install -y nodejs
 
 # Copy and build frontend (do this before switching to non-root user)
 COPY frontend/ /app/frontend/
