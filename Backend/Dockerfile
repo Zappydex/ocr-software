@@ -84,8 +84,19 @@ ENV GUNICORN_CMD_ARGS="--workers=2 --worker-class=uvicorn.workers.UvicornWorker 
 
 # Create a startup script
 RUN echo '#!/bin/bash\n\
+# Debug PORT variable\n\
+echo "PORT environment variable is: ${PORT}"\n\
+\n\
+# Set default PORT if not provided\n\
+export PORT="${PORT:-8080}"\n\
+echo "Using PORT: ${PORT}"\n\
+\n\
 # Replace PORT in nginx config\n\
 envsubst "\$PORT" < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf\n\
+\n\
+# Debug the generated nginx.conf\n\
+echo "Generated nginx.conf port:"\n\
+cat /etc/nginx/nginx.conf | grep listen\n\
 \n\
 # Start FastAPI\n\
 uvicorn app.main:app --host 127.0.0.1 --port 10000 --log-level info &\n\
