@@ -72,11 +72,6 @@ COPY --chown=appuser:appuser Backend/template /app/template
 # Copy Nginx configuration
 COPY Backend/nginx.conf /etc/nginx/nginx.conf.template
 
-# Handle Google credentials from environment variable instead of copying file
-RUN if [ -n "$GOOGLE_APPLICATION_CREDENTIALS_JSON" ]; then \
-    echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > /app/google_credentials.json && \
-    chmod 600 /app/google_credentials.json; \
-fi
 
 # Make ports available to the world outside this container
 EXPOSE ${PORT:-10000}
