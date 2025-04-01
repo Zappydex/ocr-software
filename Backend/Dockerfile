@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Set the working directory in the container
 WORKDIR /app
 
-# Install system dependencies including Node.js and npm
+# Install system dependencies including Node.js, npm, and Nginx
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
@@ -21,6 +21,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     npm \
     libgl1-mesa-glx \
     libglib2.0-0 \
+    nginx \
+    gettext-base \
     && rm -rf /var/lib/apt/lists/*
 
 COPY Backend/requirements.txt .
@@ -45,7 +47,7 @@ WORKDIR /app
 RUN adduser --disabled-password --gecos '' appuser
 
 # Create necessary directories and set permissions
-RUN mkdir -p /var/log/app /var/run /app/logs && \
+RUN mkdir -p /var/log/app /var/run /app/logs /var/log/nginx && \
     chown -R appuser:appuser /app /var/log/app /var/run
 
 # Copy the backend directory contents into the container
@@ -54,28 +56,47 @@ COPY --chown=appuser:appuser Backend/ /app/
 # Copy the template folder into the container
 COPY --chown=appuser:appuser Backend/template /app/template
 
+# Copy Nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf.template
+
 # Handle Google credentials from environment variable instead of copying file
 RUN if [ -n "$GOOGLE_APPLICATION_CREDENTIALS_JSON" ]; then \
     echo "$GOOGLE_APPLICATION_CREDENTIALS_JSON" > /app/google_credentials.json && \
     chmod 600 /app/google_credentials.json; \
 fi
 
-# Switch to non-root user
-USER appuser
-
 # Make ports available to the world outside this container
-EXPOSE 10000 8001
+EXPOSE ${PORT:-10000}
 
 # Set memory limit for Gunicorn workers
 ENV GUNICORN_CMD_ARGS="--workers=2 --worker-class=uvicorn.workers.UvicornWorker --timeout=300 --max-requests=1000 --max-requests-jitter=50"
 
-# Run both FastAPI and Django applications in production mode
-CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-10000} --log-level info & \
-    python manage.py makemigrations && \
-    python manage.py migrate && \
-    python manage.py collectstatic --noinput && \
-    gunicorn --bind 0.0.0.0:8001 config.wsgi:application --access-logfile /var/log/app/django.access.log --error-logfile /var/log/app/django.error.log & \
-    wait
+# Create a startup script
+RUN echo '#!/bin/bash\n\
+# Replace PORT in nginx config\n\
+envsubst "\$PORT" < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf\n\
+\n\
+# Start FastAPI\n\
+uvicorn app.main:app --host 127.0.0.1 --port 10000 --log-level info &\n\
+\n\
+# Start Django\n\
+python manage.py makemigrations\n\
+python manage.py migrate\n\
+python manage.py collectstatic --noinput\n\
+gunicorn --bind 127.0.0.1:8001 config.wsgi:application --access-logfile /var/log/app/django.access.log --error-logfile /var/log/app/django.error.log &\n\
+\n\
+# Start Nginx\n\
+nginx -g "daemon off;"\n' > /app/start.sh && chmod +x /app/start.sh
+
+# Ensure nginx can run
+RUN mkdir -p /var/lib/nginx /var/log/nginx && \
+    chown -R appuser:appuser /var/lib/nginx /var/log/nginx /etc/nginx
+
+# Switch to non-root user
+USER appuser
+
+# Run the startup script
+CMD ["/app/start.sh"]
 
 # Commented out alternatives kept for reference
 #CMD gunicorn --bind 0.0.0.0:${PORT:-10000} app.main:app \

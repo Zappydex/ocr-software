@@ -20,6 +20,8 @@ services:
         value: "https://ocr-software-62gw.onrender.com"
       - key: FRONTEND_URL
         value: "https://ocr-software-62gw.onrender.com"
+      - key: PORT
+        value: "10000"  
       - key: X_API_KEY
         sync: false
       - key: GOOGLE_APPLICATION_CREDENTIALS_JSON
