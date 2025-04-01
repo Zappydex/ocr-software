@@ -260,11 +260,7 @@ class FileDownloadView(APIView):
     def get(self, request, file_id):
         """Generate a download URL for a specific file"""
         # Get the file and verify user has access to it
-        file = get_object_or_404(
-            ProcessedFile, 
-            pk=file_id, 
-            project__user=request.user
-        )
+        file = get_object_or_404(ProcessedFile, pk=file_id, project__user=request.user)
         
         download_url = file.get_file_url()
         
