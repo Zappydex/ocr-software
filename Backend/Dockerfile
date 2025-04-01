@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Set the working directory in the container
 WORKDIR /app
 
-# Install system dependencies including Node.js, npm, and Nginx
+# Install system dependencies (removed nodejs and npm since we'll install Node.js 16 later)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
@@ -17,12 +17,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libtesseract-dev \
     poppler-utils \
     libmagic1 \
-    nodejs \
-    npm \
     libgl1-mesa-glx \
     libglib2.0-0 \
     nginx \
     gettext-base \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY Backend/requirements.txt .
@@ -35,6 +34,11 @@ RUN pip install --upgrade pip && \
 
 # Make sure spaCy is installed before downloading the model
 RUN pip install spacy && python -m spacy download en_core_web_sm
+
+# Install Node.js 16
+RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g npm@latest
 
 # Copy and build frontend (do this before switching to non-root user)
 COPY frontend/ /app/frontend/
