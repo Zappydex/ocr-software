@@ -65,8 +65,7 @@ class SearchView(APIView):
         
         # Search projects
         if search_type in ['all', 'projects'] and query:
-            projects = Project.objects.filter(
-                user=request.user,
+            projects = Project.objects.filter(user=request.user).filter(
                 Q(company_name__icontains=query) |
                 Q(id__icontains=query) |
                 Q(business_reg_no__icontains=query) |
@@ -113,8 +112,7 @@ class SearchView(APIView):
         
         # Search anomalies
         if search_type in ['all', 'anomalies'] and query:
-            anomalies = Anomaly.objects.filter(
-                project__user=request.user,
+            anomalies = Anomaly.objects.filter(project__user=request.user).filter(
                 Q(anomaly_type__icontains=query) |
                 Q(description__icontains=query)
             )
