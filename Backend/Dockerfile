@@ -72,6 +72,9 @@ COPY --chown=appuser:appuser Backend/template /app/template
 # Copy Nginx configuration
 COPY Backend/nginx.conf /etc/nginx/nginx.conf.template
 
+# Copy and set permissions for Google credentials
+COPY --chown=appuser:appuser google_credentials.json /app/google_credentials.json
+RUN chmod 600 /app/google_credentials.json
 
 # Make ports available to the world outside this container
 EXPOSE ${PORT:-10000}
