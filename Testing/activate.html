@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Account Activation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Account Activation</h2>
+        <p>Enter the complete activation URL from your email:</p>
+        
+        <div>
+            <input type="text" id="activation_url" placeholder="https://ocr-software-62gw.onrender.com/api/accounts/activate/MQ/cnmjin-a0e85482d95c42e5d622fa2c58ce124b/1/">
+        </div>
+        <br>
+        <button onclick="activateAccount()">Activate Account</button>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function activateAccount() {
+            const url = document.getElementById('activation_url').value;
+            
+            if (!url) {
+                showResult('Please enter the activation URL', 'error');
+                return;
+            }
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    showResult(data.message, 'success');
+                } else if (data.error) {
+                    showResult(data.error, 'error');
+                }
+            })
+            .catch(error => {
+                showResult('Error: ' + error, 'error');
+            });
+        }
+        
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.className = type;
+        }
+    </script>
+</body>
+</html>

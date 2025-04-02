@@ -85,6 +85,12 @@
         <input type="text" id="reg-username" placeholder="Username">
         <input type="password" id="reg-password1" placeholder="Password">
         <input type="password" id="reg-password2" placeholder="Confirm Password">
+        <input type="text" id="reg-organization" placeholder="Organization">
+        <select id="reg-role">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+            <option value="manager">Manager</option>
+        </select>
         <button id="register-btn">Register</button>
         <button id="resend-activation-btn">Resend Activation Email</button>
     </div>
@@ -151,8 +157,8 @@
     
     <script>
         // Configure your API base URL here
-        const API_BASE_URL = 'https://ocr-software-62gw.onrender.com/';
-        const API_PATH = 'api/accounts/';
+        const API_BASE_URL = 'https://ocr-software-62gw.onrender.com';
+        const API_PATH = '/api/accounts/';
         
         // Tab functionality
         document.querySelectorAll('.tab').forEach(tab => {
@@ -193,6 +199,9 @@
         
         // Helper function for API calls
         async function apiCall(endpoint, method, data, requiresAuth = false) {
+            const url = `${API_BASE_URL}${API_PATH}${endpoint}`;
+            console.log("Requesting URL:", url);
+            
             const headers = {
                 'Content-Type': 'application/json',
             };
@@ -206,7 +215,7 @@
             }
             
             try {
-                const response = await fetch(`${API_BASE_URL}${API_PATH}${endpoint}`, {
+                const response = await fetch(url, {
                     method,
                     headers,
                     body: data ? JSON.stringify(data) : undefined
@@ -224,6 +233,8 @@
             const username = document.getElementById('reg-username').value;
             const password1 = document.getElementById('reg-password1').value;
             const password2 = document.getElementById('reg-password2').value;
+            const organization = document.getElementById('reg-organization').value;
+            const role = document.getElementById('reg-role').value;
             
             if (password1 !== password2) {
                 displayResponse('Passwords do not match');
@@ -234,7 +245,9 @@
                 email,
                 username,
                 password1,
-                password2
+                password2,
+                organization,
+                role
             });
             
             displayResponse(data);

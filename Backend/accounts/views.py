@@ -157,16 +157,13 @@ class OTPVerificationView(APIView):
             token, _ = Token.objects.get_or_create(user=user)
             otp_obj.delete()  # OTP is consumed, delete it
 
-            profile_home_url = '/profile-home' 
             return Response({
                 'success': True,
                 'message': 'Login successful',
                 'token': token.key,
                 'user_id': user.id,
-                'email': user.email,
-                'redirect': profile_home_url
+                'email': user.email
             })
-                   
         
         logger.error(f"Form errors: {form.errors}")
         return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -260,7 +257,6 @@ class GoogleLoginView(APIView):
                 },
                 'access_token': str(refresh.access_token),
                 'refresh_token': str(refresh),
-                'redirect': '/profile-home' 
             })
             
             response.set_cookie(
