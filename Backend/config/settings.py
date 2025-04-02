@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'project.apps.ProjectConfig',
     'search_filter.apps.SearchFilterConfig',
     'drf_yasg',
+    'pages',
 ]
 
 MIDDLEWARE = [
@@ -190,6 +191,10 @@ SIMPLE_JWT = {
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = DEBUG  # Only in development
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
+CORS_ALLOWED_ORIGINS = [
+    "https://ocr-software-62gw.onrender.com"
+]
+
 CORS_ALLOW_CREDENTIALS = True
 
 # Email settings
@@ -202,8 +207,10 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@InvoTex.com')
 
 # Frontend URL for activation links, etc.
-
 FRONTEND_URL = "https://ocr-software-62gw.onrender.com"
+GOOGLE_AUTH_FRONTEND_PATH = "/auth/google"
+GOOGLE_AUTH_AUTO_CREATE_USERS = True
+
 # Twilio settings for SMS
 TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')
 TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', '')

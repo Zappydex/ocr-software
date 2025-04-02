@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Engine Auth Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #f1f1f1;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background: #4CAF50;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 0 5px 5px 5px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        input, button, select {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 8px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #response {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .token-display {
+            background: #e9f7ef;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <h1>OCR Engine API Test</h1>
+    
+    <div class="tabs">
+        <div class="tab active" data-tab="register">Register</div>
+        <div class="tab" data-tab="login">Login</div>
+        <div class="tab" data-tab="logout">Logout</div>
+        <div class="tab" data-tab="google">Google Auth</div>
+        <div class="tab" data-tab="password-reset">Password Reset</div>
+        <div class="tab" data-tab="otp">OTP Verification</div>
+    </div>
+    
+    <div id="register" class="tab-content active">
+        <h2>Register</h2>
+        <input type="text" id="reg-email" placeholder="Email">
+        <input type="text" id="reg-username" placeholder="Username">
+        <input type="password" id="reg-password1" placeholder="Password">
+        <input type="password" id="reg-password2" placeholder="Confirm Password">
+        <input type="text" id="reg-organization" placeholder="Organization">
+        <select id="reg-role">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+            <option value="manager">Manager</option>
+        </select>
+        <button id="register-btn">Register</button>
+        <button id="resend-activation-btn">Resend Activation Email</button>
+    </div>
+    
+    <div id="login" class="tab-content">
+        <h2>Login</h2>
+        <input type="text" id="login-username" placeholder="Username or Email">
+        <input type="password" id="login-password" placeholder="Password">
+        <button id="login-btn">Login</button>
+        <div id="token-display" class="token-display" style="display:none;">
+            <strong>Current Token:</strong> <span id="current-token">None</span>
+        </div>
+    </div>
+    
+    <div id="logout" class="tab-content">
+        <h2>Logout</h2>
+        <p>Click the button below to logout (requires authentication token)</p>
+        <button id="logout-btn">Logout</button>
+    </div>
+    
+    <div id="google" class="tab-content">
+        <h2>Google Authentication</h2>
+        <button id="google-login-btn">Google Login</button>
+        <button id="google-status-btn">Check Google Auth Status</button>
+    </div>
+    
+    <div id="password-reset" class="tab-content">
+        <h2>Password Reset</h2>
+        <div id="reset-request">
+            <h3>Request Password Reset</h3>
+            <input type="email" id="reset-email" placeholder="Email">
+            <button id="request-reset-btn">Request Reset</button>
+        </div>
+        <hr>
+        <div id="reset-confirm">
+            <h3>Confirm Password Reset</h3>
+            <p>Use this after clicking the link in your email</p>
+            <input type="text" id="reset-uidb64" placeholder="uidb64 from email link">
+            <input type="text" id="reset-token" placeholder="token from email link">
+            <input type="password" id="new-password" placeholder="New Password">
+            <input type="password" id="confirm-new-password" placeholder="Confirm New Password">
+            <button id="confirm-reset-btn">Set New Password</button>
+        </div>
+    </div>
+    
+    <div id="otp" class="tab-content">
+        <h2>OTP Verification</h2>
+        <div id="verify-otp">
+            <h3>Verify OTP</h3>
+            <input type="text" id="otp-code" placeholder="OTP Code">
+            <button id="verify-otp-btn">Verify OTP</button>
+        </div>
+        <hr>
+        <div id="resend-otp">
+            <h3>Resend OTP</h3>
+            <input type="email" id="resend-otp-email" placeholder="Email">
+            <button id="resend-otp-btn">Resend OTP</button>
+        </div>
+    </div>
+    
+    <h3>Response:</h3>
+    <div id="response">No response yet</div>
+    
+    <script>
+        const API_BASE_URL = 'https://ocr-software-62gw.onrender.com';
+        const API_PATH = '/api/accounts/';
+        
+        // Function to handle Google Auth callback - defined before it's used
+        function handleGoogleAuthCallback() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const idToken = urlParams.get('id_token');
+            
+            // Only run this if we're actually on the google-auth path with a token
+            if (idToken && (window.location.pathname === '/google-auth' || 
+                           window.location.pathname.endsWith('/google-auth'))) {
+                console.log('Google Auth callback detected with ID token');
+                document.getElementById('response').textContent = 'Processing Google authentication...';
+                
+                // Send the token to your backend
+                fetch(`${API_BASE_URL}${API_PATH}google/login/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ token: idToken })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('response').textContent = JSON.stringify(data, null, 2);
+                    
+                    // If registration is needed
+                    if (data.needs_additional_info) {
+                        // Show registration form with pre-filled email
+                        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                        
+                        document.querySelector('.tab[data-tab="register"]').classList.add('active');
+                        document.getElementById('register').classList.add('active');
+                        
+                        document.getElementById('reg-email').value = data.email;
+                        document.getElementById('reg-username').value = data.suggested_username || '';
+                        
+                        alert('Please complete your registration with a username and password');
+                    }
+                    
+                    // If OTP verification is needed
+                    if (data.requires_otp) {
+                        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                        
+                        document.querySelector('.tab[data-tab="otp"]').classList.add('active');
+                        document.getElementById('otp').classList.add('active');
+                        
+                        document.getElementById('resend-otp-email').value = data.email;
+                        
+                        alert('Please enter the OTP sent to your email to complete login');
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('response').textContent = `Error: ${error.message}`;
+                });
+                
+                // Clean up the URL to remove the token
+                window.history.replaceState({}, document.title, '/');
+                
+                return true; // Indicate we handled a callback
+            }
+            
+            return false; // Indicate no callback was handled
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle Google Auth callback if present
+            handleGoogleAuthCallback();
+            
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.tab).classList.add('active');
+                });
+            });
+            
+            function displayResponse(data) {
+                document.getElementById('response').textContent = 
+                    typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+            }
+            
+            function updateTokenDisplay() {
+                const token = localStorage.getItem('authToken');
+                const tokenDisplay = document.getElementById('token-display');
+                const currentToken = document.getElementById('current-token');
+                
+                if (token) {
+                    tokenDisplay.style.display = 'block';
+                    currentToken.textContent = token;
+                } else {
+                    tokenDisplay.style.display = 'none';
+                    currentToken.textContent = 'None';
+                }
+            }
+            
+            updateTokenDisplay();
+            
+            async function apiCall(endpoint, method, data, requiresAuth = false) {
+                const url = `${API_BASE_URL}${API_PATH}${endpoint}`;
+                console.log("Requesting URL:", url);
+                
+                const headers = {
+                    'Content-Type': 'application/json',
+                };
+                
+                if (requiresAuth) {
+                    const token = localStorage.getItem('authToken');
+                    if (!token) {
+                        return { error: 'Authentication required. Please login first.' };
+                    }
+                    headers['Authorization'] = `Token ${token}`;
+                }
+                
+                try {
+                    const response = await fetch(url, {
+                        method,
+                        headers,
+                        body: data ? JSON.stringify(data) : undefined
+                    });
+                    
+                    return await response.json();
+                } catch (error) {
+                    return { error: error.message };
+                }
+            }
+            
+            document.getElementById('register-btn').addEventListener('click', async () => {
+                const email = document.getElementById('reg-email').value;
+                const username = document.getElementById('reg-username').value;
+                const password1 = document.getElementById('reg-password1').value;
+                const password2 = document.getElementById('reg-password2').value;
+                const organization = document.getElementById('reg-organization').value;
+                const role = document.getElementById('reg-role').value;
+                
+                if (password1 !== password2) {
+                    displayResponse('Passwords do not match');
+                    return;
+                }
+                
+                const data = await apiCall('register/', 'POST', {
+                    email,
+                    username,
+                    password1,
+                    password2,
+                    organization,
+                    role
+                });
+                
+                displayResponse(data);
+            });
+            
+            document.getElementById('resend-activation-btn').addEventListener('click', async () => {
+                const email = document.getElementById('reg-email').value;
+                
+                if (!email) {
+                    displayResponse('Please enter an email address');
+                    return;
+                }
+                
+                const data = await apiCall('resend-activation/', 'POST', { email });
+                displayResponse(data);
+            });
+            
+            document.getElementById('login-btn').addEventListener('click', async () => {
+                const username = document.getElementById('login-username').value;
+                const password = document.getElementById('login-password').value;
+                
+                const data = await apiCall('login/', 'POST', {
+                    email: username, 
+                    password
+                });
+                
+                if (data.token) {
+                    localStorage.setItem('authToken', data.token);
+                    updateTokenDisplay();
+                }
+                
+                displayResponse(data);
+            });
+            
+            document.getElementById('logout-btn').addEventListener('click', async () => {
+                const data = await apiCall('logout/', 'POST', {}, true);
+                
+                if (!data.error) {
+                    localStorage.removeItem('authToken');
+                    updateTokenDisplay();
+                }
+                
+                displayResponse(data);
+            });
+            
+            document.getElementById('google-login-btn').addEventListener('click', async () => {
+                try {
+                    displayResponse('Fetching Google auth URL...');
+                    const response = await fetch(`${API_BASE_URL}${API_PATH}google/login/`);
+                    const data = await response.json();
+                    if (data.auth_url) {
+                        displayResponse('Redirecting to Google login...');
+                        window.location.href = data.auth_url;
+                    } else {
+                        displayResponse('No auth URL returned');
+                    }
+                } catch (error) {
+                    displayResponse(`Error: ${error.message}`);
+                }
+            });
+            
+            document.getElementById('google-status-btn').addEventListener('click', async () => {
+                const data = await apiCall('google/auth/', 'GET', null, true);
+                displayResponse(data);
+            });
+            
+            document.getElementById('request-reset-btn').addEventListener('click', async () => {
+                const email = document.getElementById('reset-email').value;
+                
+                if (!email) {
+                    displayResponse('Please enter an email address');
+                    return;
+                }
+                
+                const data = await apiCall('request-reset-email/', 'POST', { email });
+                displayResponse(data);
+            });
+            
+            document.getElementById('confirm-reset-btn').addEventListener('click', async () => {
+                const uidb64 = document.getElementById('reset-uidb64').value;
+                const token = document.getElementById('reset-token').value;
+                const password = document.getElementById('new-password').value;
+                const confirmPassword = document.getElementById('confirm-new-password').value;
+                
+                if (!uidb64 || !token) {
+                    displayResponse('Please enter the uidb64 and token from your email link');
+                    return;
+                }
+                
+                if (password !== confirmPassword) {
+                    displayResponse('Passwords do not match');
+                    return;
+                }
+                
+                try {
+                    const checkResponse = await fetch(`${API_BASE_URL}${API_PATH}password-reset/${uidb64}/${token}/`, {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    const checkData = await checkResponse.json();
+                    
+                    if (!checkData.success) {
+                        displayResponse('Invalid or expired token');
+                        return;
+                    }
+                    
+                    const resetResponse = await fetch(`${API_BASE_URL}${API_PATH}password-reset-complete/`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            password,
+                            token,
+                            uidb64
+                        })
+                    });
+                    
+                    const resetData = await resetResponse.json();
+                    displayResponse(resetData);
+                    
+                } catch (error) {
+                    displayResponse(`Error: ${error.message}`);
+                }
+            });
+            
+            document.getElementById('verify-otp-btn').addEventListener('click', async () => {
+                const otp = document.getElementById('otp-code').value;
+                
+                if (!otp) {
+                    displayResponse('Please enter OTP code');
+                    return;
+                }
+                
+                const data = await apiCall('verify-otp/', 'POST', { otp });
+                
+                if (data.success && data.token) {
+                     localStorage.setItem('authToken', data.token);
+                     updateTokenDisplay();
+                }
+        
+                displayResponse(data);
+            });
+            
+            document.getElementById('resend-otp-btn').addEventListener('click', async () => {
+                const email = document.getElementById('resend-otp-email').value;
+                
+                if (!email) {
+                    displayResponse('Please enter an email address');
+                    return;
+                }
+                
+                const data = await apiCall('resend-otp/', 'POST', { email });
+                displayResponse(data);
+            });
+        });
+    </script>
+</body>
+</html>

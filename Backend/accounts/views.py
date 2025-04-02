@@ -316,13 +316,32 @@ class GoogleLoginView(APIView):
                         logger.info(f"Updated existing user {email} with Google ID")
                     
                 except User.DoesNotExist:
-                    return Response({
-                        'needs_additional_info': True,
-                        'email': email,
-                        'google_id': google_id,
-                        'suggested_username': name.lower().replace(' ', '_') if name else email.split('@')[0],
-                        'message': 'Please provide a username and password to complete registration'
-                    }, status=status.HTTP_200_OK)
+                    if getattr(settings, 'GOOGLE_AUTH_AUTO_CREATE_USERS', True):
+                        from django.utils.crypto import get_random_string
+                        username = email.split('@')[0]
+                        base_username = username
+                        counter = 1
+                        
+                        while User.objects.filter(username=username).exists():
+                            username = f"{base_username}{counter}"
+                            counter += 1
+                            
+                        user = User.objects.create_user(
+                            email=email,
+                            username=username,
+                            password=get_random_string(12),
+                            google_id=google_id,
+                            is_active=True
+                        )
+                        logger.info(f"Auto-created new user {email} via Google Sign-In")
+                    else:
+                        return Response({
+                            'needs_additional_info': True,
+                            'email': email,
+                            'google_id': google_id,
+                            'suggested_username': name.lower().replace(' ', '_') if name else email.split('@')[0],
+                            'message': 'Please provide a username and password to complete registration'
+                        }, status=status.HTTP_200_OK)
             
             otp = OTP.generate_otp()
             OTP.objects.create(user=user, otp=otp)

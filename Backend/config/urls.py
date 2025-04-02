@@ -75,6 +75,9 @@ urlpatterns = [
     # App-specific API endpoints
     path('api/search/', include('search_filter.urls')),
     path('api/projects/', include('project.urls')),
+    
+    path('auth/', include('pages.urls')),
+
 ]
 
 # Static and media files
