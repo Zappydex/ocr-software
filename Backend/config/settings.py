@@ -209,7 +209,7 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@InvoTex.com')
 # Frontend URL for activation links, etc.
 FRONTEND_URL = "https://ocr-software-62gw.onrender.com"
 GOOGLE_AUTH_FRONTEND_PATH = "/auth/google"
-GOOGLE_AUTH_AUTO_CREATE_USERS = True
+GOOGLE_AUTH_AUTO_CREATE_USERS = False
 
 # Twilio settings for SMS
 TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')

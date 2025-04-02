@@ -164,8 +164,8 @@
             const idToken = urlParams.get('id_token');
             
             // Only run this if we're actually on the google-auth path with a token
-            if (idToken && (window.location.pathname === '/google-auth' || 
-                           window.location.pathname.endsWith('/google-auth'))) {
+            if (idToken && (window.location.pathname === '/auth/google' || 
+                           window.location.pathname.endsWith('/auth/google'))) {
                 console.log('Google Auth callback detected with ID token');
                 document.getElementById('response').textContent = 'Processing Google authentication...';
                 
