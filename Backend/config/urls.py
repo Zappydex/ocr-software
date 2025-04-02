@@ -21,6 +21,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from accounts import views
 from django.http import HttpResponse, JsonResponse
+from django.views.generic import RedirectView
 from rest_framework.authtoken import views as token_views
 from django.views.static import serve
 
@@ -36,18 +37,35 @@ def django_health_check(request):
         "status": "ok",
         "message": "Django application is running"
     })
+    
+def api_root(request):
+    """
+    Root endpoint that provides basic API information
+    """
+    return JsonResponse({
+        "name": "OCR Engine API",
+        "version": "1.0",
+        "description": "API for OCR document processing and management",
+        "endpoints": {
+            "accounts": "/api/accounts/",
+            "search_filter": "/api/search/",  
+            "projects": "/api/projects/",
+            "documents": "/api/documents/"
+        },
+        "status": "online"
+    })
+
 
 urlpatterns = [
+    path('', api_root, name='api_root'),  
     path('admin/', admin.site.urls),
     path('api/accounts/', include('accounts.urls')),
     path('api/', include('api.urls')),
     path('activate/<str:uidb64>/<str:token>/<int:user_id>/', views.activate_account, name='activate_account'),
     path('health/', health_check, name='health_check'),
     path('django-health/', django_health_check, name='django_health_check'),
-    
-    # Include other app URLs that should be handled before the catch-all
-    path('', include('search_filter.urls')),
-    path('', include('project.urls')),   
+    path('api/search/', include('search_filter.urls')),
+    path('api/projects/', include('project.urls')),
 ]
 
 # Static and media files
