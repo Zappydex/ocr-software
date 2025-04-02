@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import CustomUser, OTP
 from django.db import transaction
@@ -54,7 +55,7 @@ class RegisterView(APIView):
                     # Generate activation link with user ID
                     uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
                     token = account_activation_token.make_token(user)
-                    activation_link = f"{settings.FRONTEND_URL}/activate/{uidb64}/{token}/{user.id}/"
+                    activation_link = f"{settings.FRONTEND_URL}/api/accounts/activate/{uidb64}/{token}/{user.id}/"
 
                     # Send activation email
                     subject = 'Activate your ocrengine account'
@@ -297,7 +298,7 @@ class PasswordResetRequestView(APIView):
             if user:
                 token = default_token_generator.make_token(user)
                 uid = urlsafe_base64_encode(force_bytes(user.pk))
-                reset_link = f"{request.build_absolute_uri('/reset-password/')}{uid}/{token}/"
+                reset_link = f"{request.build_absolute_uri('/api/accounts/password-reset/')}{uid}/{token}/"
                 
                 subject = 'Reset your ocrengine password'
                 message = f'Please use the following link to reset your password: {reset_link}'
@@ -366,6 +367,7 @@ class UserProfileView(APIView):
         return Response({'message': 'User account deactivated successfully'})
 
 @api_view(['GET', 'POST'])
+@permission_classes([AllowAny])
 def activate_account(request, uidb64, token, user_id):
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
@@ -413,8 +415,8 @@ def resend_activation_email(request):
         if not user.is_active:
             uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
             token = account_activation_token.make_token(user)
-            activation_link = f"{settings.FRONTEND_URL}/activate/{uidb64}/{token}/{user.id}/"
-            
+            activation_link = f"{settings.FRONTEND_URL}/api/accounts/activate/{uidb64}/{token}/{user.id}/"
+
             subject = 'Activate your ocrengine  account'
             message = f'Please use the following link to activate your account: {activation_link}'
             send_mail(subject, message, 'noreply@ocrengine.com', [user.email])
@@ -441,8 +443,7 @@ class RequestPasswordResetEmail(generics.GenericAPIView):
             user = User.objects.get(email=email)
             uidb64 = urlsafe_base64_encode(force_bytes(user.id))
             token = PasswordResetTokenGenerator().make_token(user)
-            
-            reset_url = f"{settings.FRONTEND_URL}/reset-password/{uidb64}/{token}"
+            reset_url = f"{settings.FRONTEND_URL}/api/accounts/password-reset/{uidb64}/{token}"
             
             email_body = f'Hello,\nUse the link below to reset your password:\n{reset_url}'
             send_mail(
