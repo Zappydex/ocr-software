@@ -285,6 +285,7 @@ class FileDownloadView(APIView):
             'project_id': file.project.id
         })
 
+
 class SearchHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     """
     View and manage search history
@@ -293,6 +294,9 @@ class SearchHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
+        # Skip filtering for Swagger schema generation
+        if getattr(self, 'swagger_fake_view', False):
+            return SearchHistory.objects.none()
         return SearchHistory.objects.filter(user=self.request.user)
     
     @action(detail=False, methods=['delete'])
@@ -300,3 +304,4 @@ class SearchHistoryViewSet(viewsets.ReadOnlyModelViewSet):
         """Clear all search history for the current user"""
         SearchHistory.objects.filter(user=request.user).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+

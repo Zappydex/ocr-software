@@ -24,6 +24,7 @@ from google.auth.transport import requests
 from rest_framework.authtoken.models import Token
 from django.db import IntegrityError
 from .serializers import PasswordResetSerializer, SetNewPasswordSerializer, OTPVerificationSerializer
+from .serializers import SetNewPasswordSerializer
 from rest_framework import generics, status
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.contrib.sites.shortcuts import get_current_site
@@ -454,6 +455,8 @@ class RequestPasswordResetEmail(generics.GenericAPIView):
         return Response({'success': 'We have sent you a link to reset your password'}, status=status.HTTP_200_OK)
 
 class PasswordTokenCheckAPI(generics.GenericAPIView):
+    serializer_class = SetNewPasswordSerializer  
+    
     def get(self, request, uidb64, token):
         try:
             id = force_str(urlsafe_base64_decode(uidb64))
@@ -466,6 +469,7 @@ class PasswordTokenCheckAPI(generics.GenericAPIView):
 
         except Exception as e:
             return Response({'error': 'Token is not valid, please request a new one'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class SetNewPasswordAPIView(generics.GenericAPIView):
     serializer_class = SetNewPasswordSerializer
