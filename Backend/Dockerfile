@@ -51,9 +51,6 @@ RUN mkdir -p /var/log/app /var/run /app/logs /var/log/nginx && \
 # Copy the backend directory contents into the container
 COPY --chown=appuser:appuser Backend/ /app/
 
-# Copy the template folder into the container
-COPY --chown=appuser:appuser Backend/template /app/template
-
 # Copy Nginx configuration
 COPY Backend/nginx.conf /etc/nginx/nginx.conf.template
 
