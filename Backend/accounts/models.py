@@ -89,7 +89,6 @@ class OTP(models.Model):
 User = get_user_model()
 
 @receiver(post_save, sender=User)
-def create_user_notification_preferences(sender, instance, created, **kwargs):
+def create_user_preferences(sender, instance, created, **kwargs):
     if created:
-        NotificationPreference.objects.create(user=instance)
         UserPreference.objects.create(user=instance)
