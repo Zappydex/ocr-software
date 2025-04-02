@@ -24,6 +24,9 @@ from django.http import HttpResponse, JsonResponse
 from django.views.generic import RedirectView
 from rest_framework.authtoken import views as token_views
 from django.views.static import serve
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
 
 def health_check(request):
     return HttpResponse("OK")
@@ -37,33 +40,39 @@ def django_health_check(request):
         "status": "ok",
         "message": "Django application is running"
     })
-    
-def api_root(request):
-    """
-    Root endpoint that provides basic API information
-    """
-    return JsonResponse({
-        "name": "OCR Engine API",
-        "version": "1.0",
-        "description": "API for OCR document processing and management",
-        "endpoints": {
-            "accounts": "/api/accounts/",
-            "search_filter": "/api/search/",  
-            "projects": "/api/projects/",
-            "documents": "/api/documents/"
-        },
-        "status": "online"
-    })
 
+# Create schema view for Swagger UI
+schema_view = get_schema_view(
+   openapi.Info(
+      title="InvoTex API",
+      default_version='v1',
+      description="API for OCR document processing and management",
+      terms_of_service="https://www.InvoTex.com/terms/",
+      contact=openapi.Contact(email="contact@InvoTex.com"),
+      license=openapi.License(name="BSD License"),
+   ),
+   public=True,
+   permission_classes=[permissions.AllowAny],
+)
 
 urlpatterns = [
-    path('', api_root, name='api_root'),  
+    # Swagger documentation URLs
+    path('', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    
+    # Admin URL
     path('admin/', admin.site.urls),
+    
+    # API endpoints
     path('api/accounts/', include('accounts.urls')),
     path('api/', include('api.urls')),
     path('activate/<str:uidb64>/<str:token>/<int:user_id>/', views.activate_account, name='activate_account'),
+    
+    # Health check endpoints
     path('health/', health_check, name='health_check'),
     path('django-health/', django_health_check, name='django_health_check'),
+    
+    # App-specific API endpoints
     path('api/search/', include('search_filter.urls')),
     path('api/projects/', include('project.urls')),
 ]

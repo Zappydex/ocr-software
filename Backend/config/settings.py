@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'api',
     'project.apps.ProjectConfig',
     'search_filter.apps.SearchFilterConfig',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
