@@ -1,7 +1,7 @@
 services:
-  # Combined service for both backend and frontend
+  #  backend-only service
   - type: web
-    name: ocr-software
+    name: ocr-software-backend
     env: docker
     dockerfilePath: ./Backend/Dockerfile
     dockerContext: ./
@@ -17,9 +17,8 @@ services:
       - key: ALLOWED_HOSTS
         value: "ocr-software-62gw.onrender.com,localhost,127.0.0.1"
       - key: CORS_ALLOWED_ORIGINS
-        value: "https://ocr-software-62gw.onrender.com"
-      - key: FRONTEND_URL
-        value: "https://ocr-software-62gw.onrender.com"
+        # Include local frontend URL
+        value: "https://ocr-software-62gw.onrender.com,http://localhost:3000"
       - key: PORT
         value: "10000"  
       - key: X_API_KEY

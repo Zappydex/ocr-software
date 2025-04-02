@@ -75,7 +75,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'frontend/build')], 
+        'DIRS': [],  # Removed frontend build directory
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -145,20 +145,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-# Static files configuration - Fix duplicate STATICFILES_DIRS
+# Static files configuration
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
-    os.path.join(BASE_DIR, 'frontend/build/static'),  # React static files
 ]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-# Ensure the frontend build directory path is valid 
-FRONTEND_BUILD_DIR = os.path.join(BASE_DIR, 'frontend/build')
-if not os.path.exists(FRONTEND_BUILD_DIR):
-    print(f"Warning: Frontend build directory {FRONTEND_BUILD_DIR} does not exist")
-
 
 # Media files
 MEDIA_URL = '/media/'

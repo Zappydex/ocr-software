@@ -22,7 +22,7 @@ from django.conf.urls.static import static
 from accounts import views
 from django.http import HttpResponse, JsonResponse
 from rest_framework.authtoken import views as token_views
-from django.views.generic import TemplateView
+from django.views.static import serve
 
 def health_check(request):
     return HttpResponse("OK")
@@ -47,10 +47,7 @@ urlpatterns = [
     
     # Include other app URLs that should be handled before the catch-all
     path('', include('search_filter.urls')),
-    path('', include('project.urls')),
-    
-    # Serve React app for all other routes
-    re_path(r'^(?!api/|admin/|activate/|health/|django-health/).*$', TemplateView.as_view(template_name='index.html')),
+    path('', include('project.urls')),   
 ]
 
 # Static and media files
@@ -60,6 +57,6 @@ if settings.DEBUG:
 else:
     # In production, add static files handling
     urlpatterns += [
-        re_path(r'^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT}),
-        re_path(r'^media/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT}),
+        re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
+        re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
     ]

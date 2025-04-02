@@ -35,33 +35,18 @@ RUN pip install --upgrade pip && \
 # Make sure spaCy is installed before downloading the model
 RUN pip install spacy && python -m spacy download en_core_web_sm
 
-# Comment out Node.js installation and frontend build for now
-# Install Node.js 16
-# RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
-#     apt-get install -y nodejs
-
-# COPY frontend/ /app/frontend/
-# WORKDIR /app/frontend
-# Clear cache and configure npm with increased timeout and retries
-# RUN npm cache clean --force && \
-#     npm config set registry https://registry.npmjs.org/ && \
-#     npm config set fetch-retry-mintimeout 20000 && \
-#     npm config set fetch-retry-maxtimeout 120000 && \
-#     npm config set fetch-retries 5 && \
-#     npm install
-# RUN npm run build
 WORKDIR /app
 
 # Create a non-root user
 RUN adduser --disabled-password --gecos '' appuser
 
 # Create all necessary directories and set permissions
+
 RUN mkdir -p /var/log/app /var/run /app/logs /var/log/nginx && \
     mkdir -p /run && \
-    mkdir -p /app/frontend/build/static && \
     mkdir -p /app/static && \
     mkdir -p /var/lib/nginx && \
-    chown -R appuser:appuser /app /var/log/app /var/run /run /app/frontend /app/static /var/lib/nginx /var/log/nginx /etc/nginx
+    chown -R appuser:appuser /app /var/log/app /var/run /run /app/static /var/lib/nginx /var/log/nginx /etc/nginx
 
 # Copy the backend directory contents into the container
 COPY --chown=appuser:appuser Backend/ /app/
