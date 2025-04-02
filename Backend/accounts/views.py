@@ -245,6 +245,9 @@ class GoogleLoginView(APIView):
     def get(self, request):
         try:
             redirect_uri = request.build_absolute_uri(reverse('google-callback'))
+            if redirect_uri.startswith('http:'):
+                redirect_uri = 'https:' + redirect_uri[5:]
+        
             auth_url = (
                 f"{settings.GOOGLE_OAUTH_AUTH_URL}"
                 f"?response_type=code"
@@ -383,6 +386,8 @@ class GoogleCallbackView(APIView):
         
         try:
             redirect_uri = request.build_absolute_uri(reverse('google-callback'))
+            if redirect_uri.startswith('http:'):
+                redirect_uri = 'https:' + redirect_uri[5:]
             
             token_data = {
                 'code': code,
