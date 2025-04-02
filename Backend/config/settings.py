@@ -199,7 +199,7 @@ EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@ocrengine.com')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@InvoTex.com')
 
 # Frontend URL for activation links, etc.
 
@@ -211,6 +211,16 @@ TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER', '')
 
 # Google OAuth settings
 GOOGLE_OAUTH2_CLIENT_ID = os.environ.get('GOOGLE_OAUTH2_CLIENT_ID', '')
+GOOGLE_OAUTH2_CLIENT_SECRET = os.environ.get('GOOGLE_OAUTH2_CLIENT_SECRET', '')
+
+GOOGLE_OAUTH_AUTH_URL = 'https://accounts.google.com/o/oauth2/auth'
+GOOGLE_OAUTH_TOKEN_URL = 'https://oauth2.googleapis.com/token'
+GOOGLE_AUTH_FRONTEND_PATH = '/google-auth'
+GOOGLE_OAUTH_SCOPES = 'email profile'
+JWT_COOKIE_SECURE = True
+JWT_COOKIE_SAMESITE = 'None'
+JWT_ACCESS_TOKEN_LIFETIME = 3600  # 1 hour in seconds
+JWT_REFRESH_TOKEN_LIFETIME = 1209600  # 14 days in seconds
 
 # Logging configuration
 LOGGING = {

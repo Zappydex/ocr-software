@@ -272,7 +272,7 @@
             const password = document.getElementById('login-password').value;
             
             const data = await apiCall('login/', 'POST', {
-                login_identifier: username,
+                email: username, 
                 password
             });
             
@@ -381,8 +381,15 @@
                 return;
             }
             
-            const data = await apiCall('verify-otp/', 'POST', { otp, email });
-            displayResponse(data);
+            const data = await apiCall('verify-otp/', 'POST', { otp });
+            
+            if (data.success && data.token) {
+                 localStorage.setItem('authToken', data.token);
+                 updateTokenDisplay();
+            }
+    
+          displayResponse(data);
+
         });
         
         // Resend OTP

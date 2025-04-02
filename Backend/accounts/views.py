@@ -17,11 +17,9 @@ from .models import CustomUser, OTP
 from django.db import transaction
 from .forms import CustomUserCreationForm, LoginForm, PasswordResetRequestForm, SetPasswordForm, CustomUserChangeForm
 from .tokens import account_activation_token
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
 from google.oauth2 import id_token
-from google.auth.transport import requests
+from google.auth.transport import requests as google_requests
+from django.shortcuts import redirect
 from rest_framework.authtoken.models import Token
 from django.db import IntegrityError
 from .serializers import PasswordResetSerializer, SetNewPasswordSerializer, OTPVerificationSerializer
@@ -34,7 +32,7 @@ from django.conf import settings
 from twilio.rest import Client
 from django.utils import timezone
 from .forms import OTPVerificationForm
-
+import requests
 
 
 logger = logging.getLogger(__name__)
@@ -242,64 +240,184 @@ class GoogleAuthStatusView(APIView):
         return Response({'is_authenticated': False})
 
 class GoogleLoginView(APIView):
+    permission_classes = [AllowAny]
+    
+    def get(self, request):
+        try:
+            redirect_uri = request.build_absolute_uri(reverse('google-callback'))
+            auth_url = (
+                f"{settings.GOOGLE_OAUTH_AUTH_URL}"
+                f"?response_type=code"
+                f"&client_id={settings.GOOGLE_OAUTH2_CLIENT_ID}"
+                f"&redirect_uri={redirect_uri}"
+                f"&scope={settings.GOOGLE_OAUTH_SCOPES}"
+                f"&access_type=offline"
+            )
+            
+            logger.info(f"Initiating Google OAuth flow with redirect URI: {redirect_uri}")
+            return Response({'auth_url': auth_url}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error initiating Google OAuth flow: {str(e)}")
+            return Response({'error': 'Failed to initiate Google authentication'}, 
+                           status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     def post(self, request):
         token = request.data.get('token')
+        completing_registration = request.data.get('completing_registration', False)
+        
+        if not token:
+            return Response({'error': 'Google token is required'}, 
+                           status=status.HTTP_400_BAD_REQUEST)
+            
         try:
-            idinfo = id_token.verify_oauth2_token(token, requests.Request(), settings.GOOGLE_OAUTH2_CLIENT_ID)
+            idinfo = id_token.verify_oauth2_token(
+                token, 
+                google_requests.Request(),
+                settings.GOOGLE_OAUTH2_CLIENT_ID
+            )
+            
             email = idinfo['email']
             name = idinfo.get('name', '')
             google_id = idinfo['sub']
             
-            try:
-                user = User.objects.get(email=email)
+            if completing_registration:
+                username = request.data.get('username')
+                password = request.data.get('password')
                 
-                if not user.google_id:
-                    user.google_id = google_id
+                if not username or not password:
+                    return Response({
+                        'error': 'Username and password are required to complete registration'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
+                try:
+                    user = User.objects.create_user(
+                        email=email,
+                        username=username,
+                        password=password,
+                        google_id=google_id
+                    )
+                    user.is_active = True
                     user.save()
-                    logger.info(f"Updated existing user {email} with Google ID")
-                
-            except User.DoesNotExist:
-                user = User.objects.create(
-                    email=email,
-                    username=name or email,
-                    google_id=google_id
-                )
-                logger.info(f"Created new user {email} via Google Sign-In")
+                    logger.info(f"Created new user {email} via Google Sign-In with custom username")
+                except IntegrityError:
+                    return Response({
+                        'error': 'Username already exists. Please choose another username.'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                try:
+                    user = User.objects.get(email=email)
+                    
+                    if not user.google_id:
+                        user.google_id = google_id
+                        user.save()
+                        logger.info(f"Updated existing user {email} with Google ID")
+                    
+                except User.DoesNotExist:
+                    return Response({
+                        'needs_additional_info': True,
+                        'email': email,
+                        'google_id': google_id,
+                        'suggested_username': name.lower().replace(' ', '_') if name else email.split('@')[0],
+                        'message': 'Please provide a username and password to complete registration'
+                    }, status=status.HTTP_200_OK)
+            
+            otp = OTP.generate_otp()
+            OTP.objects.create(user=user, otp=otp)
 
-            refresh = RefreshToken.for_user(user)
+            try:
+                send_mail(
+                    'Your OTP for Google login',
+                    f'Your OTP is: {otp}',
+                    'noreply@ocrengine.com',
+                    [user.email],
+                    fail_silently=False,
+                )
+                logger.info(f"OTP sent to email: {user.email} for Google login")
+            except Exception as e:
+                logger.error(f"Failed to send OTP email for Google login: {e}")
+                return Response({'error': 'Failed to send OTP email'}, 
+                               status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            if user.phone_number:
+                try:
+                    client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+                    client.messages.create(
+                        body=f'Your ocrengine OTP for Google login is: {otp}',
+                        from_=settings.TWILIO_PHONE_NUMBER,
+                        to=user.phone_number
+                    )
+                    logger.info(f"OTP sent to phone number: {user.phone_number} for Google login")
+                except Exception as e:
+                    logger.error(f"Failed to send OTP SMS for Google login: {e}")
             
-            response = Response({
-                'message': 'Successfully logged in',
-                'user': {
-                    'id': user.id,
-                    'email': user.email,
-                    'username': user.username,
-                    'is_google_authenticated': bool(user.google_id)
-                },
-                'access_token': str(refresh.access_token),
-                'refresh_token': str(refresh),
-            })
+            return Response({
+                'message': 'OTP sent to email and phone (if available)',
+                'email': user.email,
+                'requires_otp': True
+            }, status=status.HTTP_200_OK)
             
-            response.set_cookie(
-                'refresh_token',
-                str(refresh),
-                httponly=True,
-                samesite='None',
-                secure=True,
-                max_age=3600*24*14  # 14 days
-            )
-            response.set_cookie(
-                'access_token',
-                str(refresh.access_token),
-                httponly=True,
-                samesite='None',
-                secure=True,
-                max_age=3600  # 1 hour
-            )
+        except ValueError as e:
+            logger.error(f"Invalid Google token: {str(e)}")
+            return Response({'error': 'Invalid Google token'}, 
+                           status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f"Error in Google authentication: {str(e)}")
+            return Response({'error': f'Authentication error: {str(e)}'}, 
+                           status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class GoogleCallbackView(APIView):
+    permission_classes = [AllowAny]
+    
+    def get(self, request):
+        code = request.GET.get('code')
+        error = request.GET.get('error')
+        
+        if error:
+            logger.error(f"Google OAuth error: {error}")
+            return Response({'error': f'Google authentication error: {error}'}, 
+                           status=status.HTTP_400_BAD_REQUEST)
+        
+        if not code:
+            return Response({'error': 'No authorization code provided'}, 
+                           status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            redirect_uri = request.build_absolute_uri(reverse('google-callback'))
             
-            return response
-        except ValueError:
-            return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+            token_data = {
+                'code': code,
+                'client_id': settings.GOOGLE_OAUTH2_CLIENT_ID,
+                'client_secret': settings.GOOGLE_OAUTH2_CLIENT_SECRET,
+                'redirect_uri': redirect_uri,
+                'grant_type': 'authorization_code'
+            }
+            
+            logger.info(f"Exchanging authorization code for tokens with redirect URI: {redirect_uri}")
+            token_response = requests.post(settings.GOOGLE_OAUTH_TOKEN_URL, data=token_data)
+            
+            if token_response.status_code != 200:
+                logger.error(f"Failed to exchange code for token: {token_response.text}")
+                return Response({'error': 'Failed to exchange code for token'}, 
+                               status=status.HTTP_400_BAD_REQUEST)
+            
+            tokens = token_response.json()
+            
+            id_token = tokens.get('id_token')
+            
+            if not id_token:
+                logger.error("No ID token in response")
+                return Response({'error': 'No ID token in response'}, 
+                               status=status.HTTP_400_BAD_REQUEST)
+            
+            frontend_redirect = f"{settings.FRONTEND_URL}{settings.GOOGLE_AUTH_FRONTEND_PATH}?id_token={id_token}"
+            logger.info(f"Redirecting to frontend: {frontend_redirect}")
+            
+            return redirect(frontend_redirect)
+            
+        except Exception as e:
+            logger.error(f"Error in Google callback: {str(e)}")
+            return Response({'error': f'Authentication error: {str(e)}'}, 
+                           status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class PasswordResetRequestView(APIView):
     permission_classes = [AllowAny]
