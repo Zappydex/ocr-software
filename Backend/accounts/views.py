@@ -42,6 +42,9 @@ logger = logging.getLogger(__name__)
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
+    def get(self, request):
+        return Response({'message': 'Please send a POST request with registration data'}, status=status.HTTP_200_OK)
+        
     def post(self, request):
         form = CustomUserCreationForm(request.data)
         if form.is_valid():
@@ -74,18 +77,37 @@ class RegisterView(APIView):
         else:
             logger.warning(f"Invalid registration form: {form.errors}")
             return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
-
         
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        form = LoginForm(request.data)
+        # Check if we're receiving username or email
+        if 'username' in request.data and 'email' not in request.data:
+            # If username is provided but email is not, copy username to email field
+            request_data = request.data.copy()
+            request_data['email'] = request_data['username']
+        else:
+            request_data = request.data
+
+        form = LoginForm(request_data)
         if form.is_valid():
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
-            logger.info(f"Login attempt for email: {email}")
+            logger.info(f"Login attempt for identifier: {email}")
+            
+            # First try to authenticate with email
             user = authenticate(request, email=email, password=password)
+            
+            # If that fails, try with username
+            if user is None:
+                # Try to find a user with this username
+                try:
+                    user_obj = CustomUser.objects.get(username=email)
+                    # If found, authenticate with their email
+                    user = authenticate(request, email=user_obj.email, password=password)
+                except CustomUser.DoesNotExist:
+                    user = None
 
             if user is not None:
                 if user.is_active:
@@ -121,13 +143,12 @@ class LoginView(APIView):
 
                     return Response({
                         'message': 'OTP sent to email and phone (if available)',
-         
                     }, status=status.HTTP_200_OK)
                 else:
                     logger.warning(f"Inactive account login attempt: {email}")
                     return Response({'error': 'Account is not active'}, status=status.HTTP_403_FORBIDDEN)
             else:
-                logger.warning(f"Failed login attempt for email: {email}")
+                logger.warning(f"Failed login attempt for identifier: {email}")
                 return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
         logger.error(f"Invalid form data: {form.errors}")

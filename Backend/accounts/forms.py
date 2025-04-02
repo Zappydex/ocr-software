@@ -33,7 +33,7 @@ class CustomUserChangeForm(UserChangeForm):
         fields = ('email', 'username', 'phone_number', 'organization', 'role')
 
 class LoginForm(forms.Form):
-    email = forms.EmailField()
+    login_identifier = forms.CharField(max_length=255)  
     password = forms.CharField(widget=forms.PasswordInput)
 
 class PasswordResetRequestForm(forms.Form):

@@ -272,7 +272,7 @@
             const password = document.getElementById('login-password').value;
             
             const data = await apiCall('login/', 'POST', {
-                username,
+                login_identifier: username,
                 password
             });
             
