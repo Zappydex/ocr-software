@@ -37,6 +37,8 @@ import requests
 
 logger = logging.getLogger(__name__)
 
+User = get_user_model()
+
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
@@ -233,6 +235,8 @@ class LogoutView(APIView):
 User = get_user_model()
 
 class GoogleAuthStatusView(APIView):
+    permission_classes = [AllowAny]  
+    
     def get(self, request):
         user = request.user
         if user.is_authenticated and user.google_id:
@@ -586,13 +590,9 @@ def resend_activation_email(request):
     except CustomUser.DoesNotExist:
         return Response({'error': 'No account found with this email'}, status=status.HTTP_400_BAD_REQUEST)
 
-
-
-
-User = get_user_model()
-
 class RequestPasswordResetEmail(generics.GenericAPIView):
     serializer_class = PasswordResetSerializer
+    permission_classes = [AllowAny]  
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -615,7 +615,8 @@ class RequestPasswordResetEmail(generics.GenericAPIView):
         return Response({'success': 'We have sent you a link to reset your password'}, status=status.HTTP_200_OK)
 
 class PasswordTokenCheckAPI(generics.GenericAPIView):
-    serializer_class = SetNewPasswordSerializer  
+    serializer_class = SetNewPasswordSerializer
+    permission_classes = [AllowAny]    
     
     def get(self, request, uidb64, token):
         try:
@@ -633,8 +634,9 @@ class PasswordTokenCheckAPI(generics.GenericAPIView):
 
 class SetNewPasswordAPIView(generics.GenericAPIView):
     serializer_class = SetNewPasswordSerializer
+    permission_classes = [AllowAny]  
 
     def patch(self, request):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return Response({'success': True, 'message': 'Password reset success'}, status=status.HTTP_200_OK)
+        return Response({'success': True, 'message': 'Password reset success'}, status=status.HTTP_200_OK);

@@ -158,18 +158,15 @@
         const API_BASE_URL = 'https://ocr-software-62gw.onrender.com';
         const API_PATH = '/api/accounts/';
         
-        // Function to handle Google Auth callback - defined before it's used
         function handleGoogleAuthCallback() {
             const urlParams = new URLSearchParams(window.location.search);
             const idToken = urlParams.get('id_token');
             
-            // Only run this if we're actually on the google-auth path with a token
             if (idToken && (window.location.pathname === '/auth/google' || 
                            window.location.pathname.endsWith('/auth/google'))) {
                 console.log('Google Auth callback detected with ID token');
                 document.getElementById('response').textContent = 'Processing Google authentication...';
                 
-                // Send the token to your backend
                 fetch(`${API_BASE_URL}${API_PATH}google/login/`, {
                     method: 'POST',
                     headers: {
@@ -181,9 +178,7 @@
                 .then(data => {
                     document.getElementById('response').textContent = JSON.stringify(data, null, 2);
                     
-                    // If registration is needed
                     if (data.needs_additional_info) {
-                        // Show registration form with pre-filled email
                         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                         
@@ -196,7 +191,6 @@
                         alert('Please complete your registration with a username and password');
                     }
                     
-                    // If OTP verification is needed
                     if (data.requires_otp) {
                         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -213,17 +207,15 @@
                     document.getElementById('response').textContent = `Error: ${error.message}`;
                 });
                 
-                // Clean up the URL to remove the token
                 window.history.replaceState({}, document.title, '/');
                 
-                return true; // Indicate we handled a callback
+                return true;
             }
             
-            return false; // Indicate no callback was handled
+            return false;
         }
         
         document.addEventListener('DOMContentLoaded', function() {
-            // Handle Google Auth callback if present
             handleGoogleAuthCallback();
             
             document.querySelectorAll('.tab').forEach(tab => {
@@ -380,8 +372,19 @@
                     return;
                 }
                 
-                const data = await apiCall('request-reset-email/', 'POST', { email });
-                displayResponse(data);
+                try {
+                
+                    const response = await fetch(`${API_BASE_URL}${API_PATH}request-reset-email/`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email })
+                    });
+                    
+                    const data = await response.json();
+                    displayResponse(data);
+                } catch (error) {
+                    displayResponse(`Error: ${error.message}`);
+                }
             });
             
             document.getElementById('confirm-reset-btn').addEventListener('click', async () => {
@@ -401,6 +404,7 @@
                 }
                 
                 try {
+                
                     const checkResponse = await fetch(`${API_BASE_URL}${API_PATH}password-reset/${uidb64}/${token}/`, {
                         method: 'GET',
                         headers: { 'Content-Type': 'application/json' }
