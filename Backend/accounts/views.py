@@ -33,6 +33,8 @@ from twilio.rest import Client
 from django.utils import timezone
 from .forms import OTPVerificationForm
 import requests
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 
 logger = logging.getLogger(__name__)
@@ -55,16 +57,27 @@ class RegisterView(APIView):
                     user.save()
                     logger.info(f"User created and saved to database. ID: {user.id}, Email: {user.email}")
 
-                    # Generate activation link with user ID
                     uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
                     token = account_activation_token.make_token(user)
                     activation_link = f"{settings.FRONTEND_URL}/api/accounts/activate/{uidb64}/{token}/{user.id}/"
 
-                    # Send activation email
-                    subject = 'Activate your ocrengine account'
-                    message = f'Please use the following link to activate your account: {activation_link}'
-                    send_mail(subject, message, 'noreply@ocrengine.com', [user.email])
-                    logger.info(f"Activation email sent to {user.email}. Activation link: {activation_link}")
+                    html_message = render_to_string('emails/activation_email.html', {
+                        'user': user,
+                        'activation_link': activation_link
+                    })
+                    
+                    plain_message = strip_tags(html_message)
+
+                    send_mail(
+                        subject='Activate your ocrengine account',
+                        message=plain_message,  
+                        from_email='noreply@InvoTex.com',
+                        recipient_list=[user.email],
+                        html_message=html_message,  
+                        fail_silently=False,
+                    )
+                    
+                    logger.info(f"Activation email sent to {user.email}")
 
                 return Response({
                     'message': 'Please check your email to activate your account',
