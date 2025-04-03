@@ -69,7 +69,7 @@ class RegisterView(APIView):
                     plain_message = strip_tags(html_message)
 
                     send_mail(
-                        subject='Activate your ocrengine account',
+                        subject='Activate your InvoTex account',
                         message=plain_message,  
                         from_email='noreply@InvoTex.com',
                         recipient_list=[user.email],
@@ -132,7 +132,7 @@ class LoginView(APIView):
                         send_mail(
                             'Your OTP for login',
                             f'Your OTP is: {otp}',
-                            'noreply@ocrengine.com',
+                            'noreply@InvoTex.com',
                             [user.email],
                             fail_silently=False,
                         )
@@ -146,7 +146,7 @@ class LoginView(APIView):
                         try:
                             client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
                             client.messages.create(
-                                body=f'Your ocrengine OTP is: {otp}',
+                                body=f'Your InvoTex OTP is: {otp}',
                                 from_=settings.TWILIO_PHONE_NUMBER,
                                 to=user.phone_number
                             )
@@ -216,7 +216,7 @@ class ResendOTPView(APIView):
             send_mail(
                 'Your new OTP for login',
                 f'Your new OTP is: {otp}',
-                'noreply@ocrengine.com',
+                'noreply@InvoTex.com',
                 [user.email],
                 fail_silently=False,
             )
@@ -225,7 +225,7 @@ class ResendOTPView(APIView):
             if user.phone_number:
                 client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
                 client.messages.create(
-                    body=f'Your new ocrengine OTP is: {otp}',
+                    body=f'Your new InvoTex OTP is: {otp}',
                     from_=settings.TWILIO_PHONE_NUMBER,
                     to=user.phone_number
                 )
@@ -367,7 +367,7 @@ class GoogleLoginView(APIView):
                 send_mail(
                     'Your OTP for Google login',
                     f'Your OTP is: {otp}',
-                    'noreply@ocrengine.com',
+                    'noreply@InvoTex.com',
                     [user.email],
                     fail_silently=False,
                 )
@@ -381,7 +381,7 @@ class GoogleLoginView(APIView):
                 try:
                     client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
                     client.messages.create(
-                        body=f'Your ocrengine OTP for Google login is: {otp}',
+                        body=f'Your InvoTex OTP for Google login is: {otp}',
                         from_=settings.TWILIO_PHONE_NUMBER,
                         to=user.phone_number
                     )
@@ -476,9 +476,9 @@ class PasswordResetRequestView(APIView):
                 uid = urlsafe_base64_encode(force_bytes(user.pk))
                 reset_link = f"{request.build_absolute_uri('/api/accounts/password-reset/')}{uid}/{token}/"
                 
-                subject = 'Reset your ocrengine password'
+                subject = 'Reset your InvoTex password'
                 message = f'Please use the following link to reset your password: {reset_link}'
-                send_mail(subject, message, 'noreply@ocrengine.com', [email])
+                send_mail(subject, message, 'noreply@InvoTex.com', [email])
             
             return Response({'message': 'If an account with this email exists, a password reset link has been sent.'})
         return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -573,15 +573,14 @@ def activate_account(request, uidb64, token, user_id):
                     return Response({'message': 'Account is already active'}, status=status.HTTP_200_OK)
         else:
             logger.warning(f"Invalid token for user: {user.email}")
-            return Response({'error': 'Invalid activation token'}, status=status.HTTP_400_BAD_REQUEST)
+return Response({'error': 'Invalid or expired activation token'}, status=status.HTTP_400_BAD_REQUEST)
     except CustomUser.DoesNotExist:
         logger.error(f"No user found with ID: {user_id}")
-        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+                    return Response({'error': 'Invalid or expired activation 
     except Exception as e:
         logger.error(f"Error in account activation: {str(e)}")
         return Response({'error': 'An error occurred during activation'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    
 
 @api_view(['POST'])
 def resend_activation_email(request):
@@ -593,9 +592,21 @@ def resend_activation_email(request):
             token = account_activation_token.make_token(user)
             activation_link = f"{settings.FRONTEND_URL}/api/accounts/activate/{uidb64}/{token}/{user.id}/"
 
-            subject = 'Activate your ocrengine  account'
-            message = f'Please use the following link to activate your account: {activation_link}'
-            send_mail(subject, message, 'noreply@ocrengine.com', [user.email])
+            html_message = render_to_string('emails/activation_email.html', {
+                'user': user,
+                'activation_link': activation_link
+            })
+            
+            plain_message = strip_tags(html_message)
+
+            send_mail(
+                subject='Activate your InvoTex account',
+                message=plain_message,
+                from_email='noreply@InvoTex.com',
+                recipient_list=[user.email],
+                html_message=html_message,
+                fail_silently=False,
+            )
             
             return Response({'message': 'Activation email resent successfully'}, status=status.HTTP_200_OK)
         else:
@@ -617,12 +628,19 @@ class RequestPasswordResetEmail(generics.GenericAPIView):
             token = PasswordResetTokenGenerator().make_token(user)
             reset_url = f"{settings.FRONTEND_URL}/api/accounts/password-reset/{uidb64}/{token}"
             
-            email_body = f'Hello,\nUse the link below to reset your password:\n{reset_url}'
+            html_message = render_to_string('emails/password_reset_email.html', {
+                'user': user,
+                'reset_url': reset_url
+            })
+            
+            plain_message = strip_tags(html_message)
+            
             send_mail(
-                'Reset your ocrengine password',
-                email_body,
-                'noreply@ocrengine.com',
+                'Reset your InvoTex password',
+                plain_message,
+                'noreply@InvoTex.com',
                 [user.email],
+                html_message=html_message,
                 fail_silently=False,
             )
         return Response({'success': 'We have sent you a link to reset your password'}, status=status.HTTP_200_OK)
