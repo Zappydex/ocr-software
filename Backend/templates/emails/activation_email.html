@@ -3,7 +3,7 @@
 <head>
     <style>
         .button {
-            background-color: #4CAF50;
+            background-color: #4361ee;
             border: none;
             color: white;
             padding: 15px 32px;
@@ -15,18 +15,50 @@
             cursor: pointer;
             border-radius: 8px;
         }
+        .button:hover {
+            background-color: #3f37c9;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #212529;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #4361ee, #3f37c9);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 0 0 8px 8px;
+        }
     </style>
 </head>
 <body>
-    <p>Hello {{ user.username }},</p>
-    <p>Thank you for registering with InvoTex, Please activate your account by clicking the button below:</p>
-    
-    <p>
-        <a href="{{ activation_link }}" class="button">Activate Account</a>
-    </p>
-    
-    <p>This link will expire in 30 minutes</p>
-    
-    <p>Best regards,<br>InvoTex Team</p>
+    <div class="container">
+        <div class="header">
+            <h2>InvoTex</h2>
+        </div>
+        <div class="content">
+            <p>Hello {{ user.username }},</p>
+            <p>Thank you for registering with InvoTex. Please activate your account by clicking the button below:</p>
+            
+            <p style="text-align: center;">
+                <a href="{{ activation_link }}" class="button">Activate Account</a>
+            </p>
+            
+            <p><strong>This link will expire in 30 minutes</strong></p>
+            
+            <p>Best regards,<br>InvoTex Team</p>
+        </div>
+    </div>
 </body>
 </html>

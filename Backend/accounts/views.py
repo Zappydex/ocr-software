@@ -545,6 +545,15 @@ def activate_account(request, uidb64, token, user_id):
             return Response({'error': 'Invalid activation link'}, status=status.HTTP_400_BAD_REQUEST)
 
         if account_activation_token.check_token(user, token):
+            ts_b36, _ = token.split("-")
+            ts = int(ts_b36, 36)
+            
+            import time
+            current_timestamp = int(time.time())
+            if (current_timestamp - ts) > 1800:
+                logger.warning(f"Expired token for user: {user.email}")
+                return Response({'error': 'Activation link has expired'}, status=status.HTTP_400_BAD_REQUEST)
+                
             if request.method == 'GET':
                 return Response({
                     'message': 'Token is valid. Please confirm activation.',
@@ -563,13 +572,14 @@ def activate_account(request, uidb64, token, user_id):
                     return Response({'message': 'Account is already active'}, status=status.HTTP_200_OK)
         else:
             logger.warning(f"Invalid token for user: {user.email}")
-            return Response({'error': 'Invalid or expired activation token'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Invalid activation token'}, status=status.HTTP_400_BAD_REQUEST)
     except CustomUser.DoesNotExist:
         logger.error(f"No user found with ID: {user_id}")
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         logger.error(f"Error in account activation: {str(e)}")
         return Response({'error': 'An error occurred during activation'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 @api_view(['POST'])
 def resend_activation_email(request):
