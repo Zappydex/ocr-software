@@ -16,7 +16,7 @@ class AccountActivationTokenGenerator(PasswordResetTokenGenerator):
         except ValueError:
             return False
 
-        now = self._now()
+        now = self._now().timestamp()
         if (now - ts) > timedelta(minutes=30).total_seconds():
             return False
             
