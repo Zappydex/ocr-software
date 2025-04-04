@@ -95,9 +95,7 @@ class LoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        # Check if we're receiving username or email
         if 'username' in request.data and 'email' not in request.data:
-            # If username is provided but email is not, copy username to email field
             request_data = request.data.copy()
             request_data['email'] = request_data['username']
         else:
@@ -109,15 +107,11 @@ class LoginView(APIView):
             password = form.cleaned_data['password']
             logger.info(f"Login attempt for identifier: {email}")
             
-            # First try to authenticate with email
             user = authenticate(request, email=email, password=password)
             
-            # If that fails, try with username
             if user is None:
-                # Try to find a user with this username
                 try:
                     user_obj = CustomUser.objects.get(username=email)
-                    # If found, authenticate with their email
                     user = authenticate(request, email=user_obj.email, password=password)
                 except CustomUser.DoesNotExist:
                     user = None
@@ -127,7 +121,6 @@ class LoginView(APIView):
                     otp = OTP.generate_otp()
                     OTP.objects.create(user=user, otp=otp)
 
-                    # Send OTP via email
                     try:
                         send_mail(
                             'Your OTP for login',
@@ -141,7 +134,6 @@ class LoginView(APIView):
                         logger.error(f"Failed to send OTP email: {e}")
                         return Response({'error': 'Failed to send OTP email'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-                    # Send OTP via SMS
                     if user.phone_number:
                         try:
                             client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
@@ -189,7 +181,7 @@ class OTPVerificationView(APIView):
             user = otp_obj.user
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             token, _ = Token.objects.get_or_create(user=user)
-            otp_obj.delete()  # OTP is consumed, delete it
+            otp_obj.delete()  
 
             return Response({
                 'success': True,
@@ -212,7 +204,6 @@ class ResendOTPView(APIView):
             otp = OTP.generate_otp()
             OTP.objects.create(user=user, otp=otp)
             
-            # Send OTP via email
             send_mail(
                 'Your new OTP for login',
                 f'Your new OTP is: {otp}',
@@ -220,8 +211,7 @@ class ResendOTPView(APIView):
                 [user.email],
                 fail_silently=False,
             )
-            
-            # Send OTP via SMS
+           
             if user.phone_number:
                 client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
                 client.messages.create(
@@ -549,7 +539,7 @@ def activate_account(request, uidb64, token, user_id):
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = CustomUser.objects.get(pk=user_id)
         logger.info(f"Activation attempt for User ID: {user_id}, Decoded UID: {uid}")
-
+        
         if int(uid) != int(user_id):
             logger.warning(f"UID mismatch. Decoded UID: {uid}, User ID: {user_id}")
             return Response({'error': 'Invalid activation link'}, status=status.HTTP_400_BAD_REQUEST)
@@ -573,11 +563,10 @@ def activate_account(request, uidb64, token, user_id):
                     return Response({'message': 'Account is already active'}, status=status.HTTP_200_OK)
         else:
             logger.warning(f"Invalid token for user: {user.email}")
-return Response({'error': 'Invalid or expired activation token'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Invalid or expired activation token'}, status=status.HTTP_400_BAD_REQUEST)
     except CustomUser.DoesNotExist:
         logger.error(f"No user found with ID: {user_id}")
-        
-                    return Response({'error': 'Invalid or expired activation 
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         logger.error(f"Error in account activation: {str(e)}")
         return Response({'error': 'An error occurred during activation'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
