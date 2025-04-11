@@ -59,7 +59,7 @@ class RegisterView(APIView):
 
                     uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
                     token = account_activation_token.make_token(user)
-                    activation_link = f"{settings.FRONTEND_URL}/api/accounts/activate/{uidb64}/{token}/{user.id}/"
+                    activation_link = f"{settings.FRONTEND_URL}/activate/{uidb64}/{token}/{user.id}/"
 
                     html_message = render_to_string('emails/activation_email.html', {
                         'user': user,
@@ -550,7 +550,7 @@ def activate_account(request, uidb64, token, user_id):
             
             import time
             current_timestamp = int(time.time())
-            if (current_timestamp - ts) > 1800:
+            if (current_timestamp - ts) > 86400:
                 logger.warning(f"Expired token for user: {user.email}")
                 return Response({'error': 'Activation link has expired'}, status=status.HTTP_400_BAD_REQUEST)
                 
@@ -589,7 +589,7 @@ def resend_activation_email(request):
         if not user.is_active:
             uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
             token = account_activation_token.make_token(user)
-            activation_link = f"{settings.FRONTEND_URL}/api/accounts/activate/{uidb64}/{token}/{user.id}/"
+            activation_link = f"{settings.FRONTEND_URL}/activate/{uidb64}/{token}/{user.id}/"
 
             html_message = render_to_string('emails/activation_email.html', {
                 'user': user,

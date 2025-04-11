@@ -2,43 +2,55 @@
 <html>
 <head>
     <style>
+        body {
+            font-family: 'Montserrat', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            line-height: 1.6;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #0056b3;
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        .content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 0 0 16px 16px;
+        }
         .button {
-            background-color: #4361ee;
+            background-color: #0056b3;
             border: none;
             color: white;
-            padding: 15px 32px;
+            padding: 12px 24px;
             text-align: center;
             text-decoration: none;
             display: inline-block;
             font-size: 16px;
-            margin: 4px 2px;
+            margin: 20px 0;
             cursor: pointer;
-            border-radius: 8px;
+            border-radius: 20px;
+            font-weight: bold;
+            transition: background-color 0.3s;
         }
         .button:hover {
-            background-color: #3f37c9;
+            background-color: #004494;
         }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #212529;
-            line-height: 1.6;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .header {
-            background: linear-gradient(135deg, #4361ee, #3f37c9);
-            color: white;
-            padding: 20px;
+        .footer {
             text-align: center;
-            border-radius: 8px 8px 0 0;
-        }
-        .content {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 0 0 8px 8px;
+            font-size: 12px;
+            color: #767676;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -55,9 +67,13 @@
                 <a href="{{ activation_link }}" class="button">Activate Account</a>
             </p>
             
-            <p><strong>This link will expire in 30 minutes</strong></p>
+            <p><strong>This link will expire in 24 hours.</strong></p>
             
             <p>Best regards,<br>InvoTex Team</p>
+            
+            <div class="footer">
+                <p>If you didn't create this account, please ignore this email.</p>
+            </div>
         </div>
     </div>
 </body>

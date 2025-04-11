@@ -207,7 +207,7 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@InvoTex.com')
 
 # Frontend URL for activation links, etc.
-FRONTEND_URL = "https://ocr-software-62gw.onrender.com"
+FRONTEND_URL = "https://ocr-software-frontend.onrender.com"
 GOOGLE_AUTH_FRONTEND_PATH = "/auth/google"
 GOOGLE_AUTH_AUTO_CREATE_USERS = False
 
