@@ -192,7 +192,8 @@ SIMPLE_JWT = {
 CORS_ALLOW_ALL_ORIGINS = DEBUG  # Only in development
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
 CORS_ALLOWED_ORIGINS = [
-    "https://ocr-software-62gw.onrender.com"
+    "https://ocr-software-62gw.onrender.com",
+    "https://ocr-software-frontend.onrender.com"
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -208,8 +209,6 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@InvoTex.com')
 
 # Frontend URL for activation links, etc.
 FRONTEND_URL = "https://ocr-software-frontend.onrender.com"
-GOOGLE_AUTH_FRONTEND_PATH = "/auth/google"
-GOOGLE_AUTH_AUTO_CREATE_USERS = False
 
 # Twilio settings for SMS
 TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')
@@ -222,7 +221,8 @@ GOOGLE_OAUTH2_CLIENT_SECRET = os.environ.get('GOOGLE_OAUTH2_CLIENT_SECRET', '')
 
 GOOGLE_OAUTH_AUTH_URL = 'https://accounts.google.com/o/oauth2/auth'
 GOOGLE_OAUTH_TOKEN_URL = 'https://oauth2.googleapis.com/token'
-GOOGLE_AUTH_FRONTEND_PATH = '/google-auth'
+GOOGLE_AUTH_FRONTEND_PATH = "/auth/google"
+GOOGLE_AUTH_AUTO_CREATE_USERS = False
 GOOGLE_OAUTH_SCOPES = 'email profile'
 JWT_COOKIE_SECURE = True
 JWT_COOKIE_SAMESITE = 'None'

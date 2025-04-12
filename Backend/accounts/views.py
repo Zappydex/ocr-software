@@ -440,7 +440,7 @@ class GoogleCallbackView(APIView):
                 return Response({'error': 'No ID token in response'}, 
                                status=status.HTTP_400_BAD_REQUEST)
             
-            frontend_redirect = f"{settings.FRONTEND_URL}/auth/google?id_token={id_token}"
+            frontend_redirect = f"{settings.FRONTEND_URL}{settings.GOOGLE_AUTH_FRONTEND_PATH}?id_token={id_token}"
             logger.info(f"Redirecting to frontend: {frontend_redirect}")
             
             return redirect(frontend_redirect)
