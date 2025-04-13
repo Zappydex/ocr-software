@@ -32,7 +32,9 @@ from django.conf import settings
 from twilio.rest import Client
 from django.utils import timezone
 from .forms import OTPVerificationForm
+from django.core.cache import cache
 import requests
+import hashlib
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
@@ -278,6 +280,16 @@ class GoogleLoginView(APIView):
         if not token:
             return Response({'error': 'Google token is required'}, 
                            status=status.HTTP_400_BAD_REQUEST)
+        
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        cache_key = f"google_token_{token_hash}"
+        
+        if cache.get(cache_key):
+            logger.info(f"Token already processed, returning cached response")
+            return Response({
+                'message': 'Token already processed',
+                'requires_otp': True
+            }, status=status.HTTP_200_OK)
             
         try:
             logger.info(f"Received Google token: {token[:10]}...")
@@ -293,6 +305,8 @@ class GoogleLoginView(APIView):
             google_id = idinfo['sub']
             
             logger.info(f"Successfully verified token for email: {email}")
+            
+            cache.set(cache_key, True, 300)  # Cache for 5 minutes
             
             if completing_registration:
                 username = request.data.get('username')
@@ -354,8 +368,17 @@ class GoogleLoginView(APIView):
                             'message': 'Please provide a username and password to complete registration'
                         }, status=status.HTTP_200_OK)
             
-            otp = OTP.generate_otp()
-            OTP.objects.create(user=user, otp=otp)
+            recent_otp = OTP.objects.filter(
+                user=user, 
+                created_at__gte=timezone.now() - timezone.timedelta(minutes=5)
+            ).first()
+            
+            if recent_otp:
+                otp = recent_otp.otp
+                logger.info(f"Reusing existing OTP for {user.email}")
+            else:
+                otp = OTP.generate_otp()
+                OTP.objects.create(user=user, otp=otp)
 
             try:
                 send_mail(
@@ -397,6 +420,7 @@ class GoogleLoginView(APIView):
             logger.error(f"Error in Google authentication: {str(e)}")
             return Response({'error': f'Authentication error: {str(e)}'}, 
                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class GoogleCallbackView(APIView):
     permission_classes = [AllowAny]
