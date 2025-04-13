@@ -280,6 +280,8 @@ class GoogleLoginView(APIView):
                            status=status.HTTP_400_BAD_REQUEST)
             
         try:
+            logger.info(f"Received Google token: {token[:10]}...")
+            
             idinfo = id_token.verify_oauth2_token(
                 token, 
                 google_requests.Request(),
@@ -289,6 +291,8 @@ class GoogleLoginView(APIView):
             email = idinfo['email']
             name = idinfo.get('name', '')
             google_id = idinfo['sub']
+            
+            logger.info(f"Successfully verified token for email: {email}")
             
             if completing_registration:
                 username = request.data.get('username')
@@ -387,7 +391,7 @@ class GoogleLoginView(APIView):
             
         except ValueError as e:
             logger.error(f"Invalid Google token: {str(e)}")
-            return Response({'error': 'Invalid Google token'}, 
+            return Response({'error': f'Invalid Google token: {str(e)}'}, 
                            status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logger.error(f"Error in Google authentication: {str(e)}")
