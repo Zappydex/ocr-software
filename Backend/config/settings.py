@@ -192,13 +192,14 @@ SIMPLE_JWT = {
 CORS_ALLOW_ALL_ORIGINS = DEBUG  # Only in development
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
 CORS_ALLOWED_ORIGINS = [
-    "https://ocr-software-62gw.onrender.com",
-    "https://ocr-software-frontend.onrender.com",
+    "https://ocr-software-ecn9.onrender.com",
+    "https://ocr-software-frontend-57y9.onrender.com",
     "http://localhost:3000"
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
+
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
@@ -221,7 +222,7 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@InvoTex.com')
 
 # Frontend URL for activation links, etc.
-FRONTEND_URL = "https://ocr-software-frontend.onrender.com"
+FRONTEND_URL = "https://ocr-software-frontend-57y9.onrender.com"
 
 # Twilio settings for SMS
 TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')
