@@ -559,7 +559,7 @@ class UserProfileView(APIView):
         user.save()
         logout(request)
         return Response({'message': 'User account deactivated successfully'})
-
+        
 @api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
 def activate_account(request, uidb64, token, user_id):
@@ -570,7 +570,7 @@ def activate_account(request, uidb64, token, user_id):
         
         if int(uid) != int(user_id):
             logger.warning(f"UID mismatch. Decoded UID: {uid}, User ID: {user_id}")
-            return Response({'error': 'Invalid activation link'}, status=status.HTTP_400_BAD_REQUEST)
+            return redirect(f"{settings.FRONTEND_URL}/login?error=invalid_link")
 
         if account_activation_token.check_token(user, token):
             ts_b36, _ = token.split("-")
@@ -580,34 +580,26 @@ def activate_account(request, uidb64, token, user_id):
             current_timestamp = int(time.time())
             if (current_timestamp - ts) > 86400:
                 logger.warning(f"Expired token for user: {user.email}")
-                return Response({'error': 'Activation link has expired'}, status=status.HTTP_400_BAD_REQUEST)
+                return redirect(f"{settings.FRONTEND_URL}/login?error=expired_token")
                 
-            if request.method == 'GET':
-                return Response({
-                    'message': 'Token is valid. Please confirm activation.',
-                    'uidb64': uidb64,
-                    'token': token,
-                    'user_id': user_id
-                })
-            elif request.method == 'POST':
+            if request.method == 'GET' or request.method == 'POST':
                 if not user.is_active:
                     user.is_active = True
                     user.save()
                     logger.info(f"Account activated for user: {user.email}")
-                    return Response({'message': 'Account successfully activated'}, status=status.HTTP_200_OK)
+                    return redirect(f"{settings.FRONTEND_URL}/login?activated=true")
                 else:
                     logger.warning(f"Account already active for user: {user.email}")
-                    return Response({'message': 'Account is already active'}, status=status.HTTP_200_OK)
+                    return redirect(f"{settings.FRONTEND_URL}/login?activated=already")
         else:
             logger.warning(f"Invalid token for user: {user.email}")
-            return Response({'error': 'Invalid activation token'}, status=status.HTTP_400_BAD_REQUEST)
+            return redirect(f"{settings.FRONTEND_URL}/login?error=invalid_token")
     except CustomUser.DoesNotExist:
         logger.error(f"No user found with ID: {user_id}")
-        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        return redirect(f"{settings.FRONTEND_URL}/login?error=user_not_found")
     except Exception as e:
         logger.error(f"Error in account activation: {str(e)}")
-        return Response({'error': 'An error occurred during activation'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+        return redirect(f"{settings.FRONTEND_URL}/login?error=activation_failed")
 
 @api_view(['POST'])
 def resend_activation_email(request):
